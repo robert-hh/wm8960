@@ -4,250 +4,236 @@
 #
 # Copyright (c) 2015, Freescale Semiconductor, Inc., (C-Code)
 # Copyright 2016-2021 NXP, (C-Code)
-# Copyright (c) 2022, Robert Hammelrath, Python transformation
 # All rights reserved.
+#
+# Translated to MicroPython by Robert Hammelrath, 2022
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+import array
 
 # Define the register addresses of WM8960.
-WM8960_LINVOL = const(0x0)
-WM8960_RINVOL = const(0x1)
-WM8960_LOUT1 = const(0x2)
-WM8960_ROUT1 = const(0x3)
-WM8960_CLOCK1 = const(0x4)
-WM8960_DACCTL1 = const(0x5)
-WM8960_DACCTL2 = const(0x6)
-WM8960_IFACE1 = const(0x7)
-WM8960_CLOCK2 = const(0x8)
-WM8960_IFACE2 = const(0x9)
-WM8960_LDAC = const(0xa)
-WM8960_RDAC = const(0xb)
-WM8960_RESET = const(0xf)
-WM8960_3D = const(0x10)
-WM8960_ALC1 = const(0x11)
-WM8960_ALC2 = const(0x12)
-WM8960_ALC3 = const(0x13)
-WM8960_NOISEG = const(0x14)
-WM8960_LADC = const(0x15)
-WM8960_RADC = const(0x16)
-WM8960_ADDCTL1 = const(0x17)
-WM8960_ADDCTL2 = const(0x18)
-WM8960_POWER1 = const(0x19)
-WM8960_POWER2 = const(0x1a)
-WM8960_ADDCTL3 = const(0x1b)
-WM8960_APOP1 = const(0x1c)
-WM8960_APOP2 = const(0x1d)
-WM8960_LINPATH = const(0x20)
-WM8960_RINPATH = const(0x21)
-WM8960_LOUTMIX = const(0x22)
-WM8960_ROUTMIX = const(0x25)
-WM8960_MONOMIX1 = const(0x26)
-WM8960_MONOMIX2 = const(0x27)
-WM8960_LOUT2 = const(0x28)
-WM8960_ROUT2 = const(0x29)
-WM8960_MONO = const(0x2a)
-WM8960_INBMIX1 = const(0x2b)
-WM8960_INBMIX2 = const(0x2c)
-WM8960_BYPASS1 = const(0x2d)
-WM8960_BYPASS2 = const(0x2e)
-WM8960_POWER3 = const(0x2f)
-WM8960_ADDCTL4 = const(0x30)
-WM8960_CLASSD1 = const(0x31)
-WM8960_CLASSD3 = const(0x33)
-WM8960_PLL1 = const(0x34)
-WM8960_PLL2 = const(0x35)
-WM8960_PLL3 = const(0x36)
-WM8960_PLL4 = const(0x37)
+_WM8960_LINVOL = const(0x0)
+_WM8960_RINVOL = const(0x1)
+_WM8960_LOUT1 = const(0x2)
+_WM8960_ROUT1 = const(0x3)
+_WM8960_CLOCK1 = const(0x4)
+_WM8960_DACCTL1 = const(0x5)
+_WM8960_DACCTL2 = const(0x6)
+_WM8960_IFACE1 = const(0x7)
+_WM8960_CLOCK2 = const(0x8)
+_WM8960_IFACE2 = const(0x9)
+_WM8960_LDAC = const(0xA)
+_WM8960_RDAC = const(0xB)
+_WM8960_RESET = const(0xF)
+_WM8960_3D = const(0x10)
+_WM8960_ALC1 = const(0x11)
+_WM8960_ALC2 = const(0x12)
+_WM8960_ALC3 = const(0x13)
+_WM8960_NOISEG = const(0x14)
+_WM8960_LADC = const(0x15)
+_WM8960_RADC = const(0x16)
+_WM8960_ADDCTL1 = const(0x17)
+_WM8960_ADDCTL2 = const(0x18)
+_WM8960_POWER1 = const(0x19)
+_WM8960_POWER2 = const(0x1A)
+_WM8960_ADDCTL3 = const(0x1B)
+_WM8960_APOP1 = const(0x1C)
+_WM8960_APOP2 = const(0x1D)
+_WM8960_LINPATH = const(0x20)
+_WM8960_RINPATH = const(0x21)
+_WM8960_LOUTMIX = const(0x22)
+_WM8960_ROUTMIX = const(0x25)
+_WM8960_MONOMIX1 = const(0x26)
+_WM8960_MONOMIX2 = const(0x27)
+_WM8960_LOUT2 = const(0x28)
+_WM8960_ROUT2 = const(0x29)
+_WM8960_MONO = const(0x2A)
+_WM8960_INBMIX1 = const(0x2B)
+_WM8960_INBMIX2 = const(0x2C)
+_WM8960_BYPASS1 = const(0x2D)
+_WM8960_BYPASS2 = const(0x2E)
+_WM8960_POWER3 = const(0x2F)
+_WM8960_ADDCTL4 = const(0x30)
+_WM8960_CLASSD1 = const(0x31)
+_WM8960_CLASSD3 = const(0x33)
+_WM8960_PLL1 = const(0x34)
+_WM8960_PLL2 = const(0x35)
+_WM8960_PLL3 = const(0x36)
+_WM8960_PLL4 = const(0x37)
+
+# WM8960 PLLN range */
+_WM8960_PLL_N_MIN_VALUE = const(6)
+_WM8960_PLL_N_MAX_VALUE = const(12)
 
 # Cache register count
-WM8960_CACHEREGNUM = const(56)
+_WM8960_CACHEREGNUM = const(56)
 
 # WM8960 CLOCK2 bits
-WM8960_CLOCK2_BCLK_DIV_MASK =const(0x0F)
+_WM8960_CLOCK2_BCLK_DIV_MASK = const(0x0F)
 
-# WM8960_IFACE1 FORMAT bits
-WM8960_IFACE1_FORMAT_MASK  = const(0x03)
-WM8960_IFACE1_FORMAT_SHIFT = const(0x00)
-WM8960_IFACE1_FORMAT_RJ    = const(0x00)
-WM8960_IFACE1_FORMAT_LJ    = const(0x01)
-WM8960_IFACE1_FORMAT_I2S   = const(0x02)
-WM8960_IFACE1_FORMAT_DSP   = const(0x03)
+# _WM8960_IFACE1 FORMAT bits
+_WM8960_IFACE1_FORMAT_MASK = const(0x03)
+_WM8960_IFACE1_FORMAT_SHIFT = const(0x00)
+_WM8960_IFACE1_FORMAT_RJ = const(0x00)
+_WM8960_IFACE1_FORMAT_LJ = const(0x01)
+_WM8960_IFACE1_FORMAT_I2S = const(0x02)
+_WM8960_IFACE1_FORMAT_DSP = const(0x03)
 
-# WM8960_IFACE1 WL bits
-WM8960_IFACE1_WL_MASK   = const(0x0C)
-WM8960_IFACE1_WL_SHIFT  = const(0x02)
-WM8960_IFACE1_WL_16BITS = const(0x00)
-WM8960_IFACE1_WL_20BITS = const(0x01)
-WM8960_IFACE1_WL_24BITS = const(0x02)
-WM8960_IFACE1_WL_32BITS = const(0x03)
+# _WM8960_IFACE1 WL bits
+_WM8960_IFACE1_WL_MASK = const(0x0C)
+_WM8960_IFACE1_WL_SHIFT = const(0x02)
 
-# WM8960_IFACE1 LRP bit
-WM8960_IFACE1_LRP_MASK         = const(0x10)
-WM8960_IFACE1_LRP_SHIFT        = const(0x04)
-WM8960_IFACE1_LRCLK_NORMAL_POL = const(0x00)
-WM8960_IFACE1_LRCLK_INVERT_POL = const(0x01)
-WM8960_IFACE1_DSP_MODEA        = const(0x00)
-WM8960_IFACE1_DSP_MODEB        = const(0x01)
+# _WM8960_IFACE1 LRP bit
+_WM8960_IFACE1_LRP_MASK = const(0x10)
+_WM8960_IFACE1_LRP_SHIFT = const(0x04)
+_WM8960_IFACE1_LRCLK_NORMAL_POL = const(0x00)
+_WM8960_IFACE1_LRCLK_INVERT_POL = const(0x01)
+_WM8960_IFACE1_DSP_MODEA = const(0x00)
+_WM8960_IFACE1_DSP_MODEB = const(0x01)
 
-# WM8960_IFACE1 DLRSWAP bit
-WM8960_IFACE1_DLRSWAP_MASK  = const(0x20)
-WM8960_IFACE1_DLRSWAP_SHIFT = const(0x05)
-WM8960_IFACE1_DACCH_NORMAL  = const(0x00)
-WM8960_IFACE1_DACCH_SWAP    = const(0x01)
+# _WM8960_IFACE1 DLRSWAP bit
+_WM8960_IFACE1_DLRSWAP_MASK = const(0x20)
+_WM8960_IFACE1_DLRSWAP_SHIFT = const(0x05)
+_WM8960_IFACE1_DACCH_NORMAL = const(0x00)
+_WM8960_IFACE1_DACCH_SWAP = const(0x01)
 
-# WM8960_IFACE1 MS bit
-WM8960_IFACE1_MS_MASK  = const(0x40)
-WM8960_IFACE1_MS_SHIFT = const(0x06)
-WM8960_IFACE1_SLAVE    = const(0x00)
-WM8960_IFACE1_MASTER   = const(0x01)
+# _WM8960_IFACE1 MS bit
+_WM8960_IFACE1_MS_MASK = const(0x40)
+_WM8960_IFACE1_MS_SHIFT = const(0x06)
+_WM8960_IFACE1_SLAVE = const(0x00)
+_WM8960_IFACE1_MASTER = const(0x01)
 
-# WM8960_IFACE1 BCLKINV bit
-WM8960_IFACE1_BCLKINV_MASK   = const(0x80)
-WM8960_IFACE1_BCLKINV_SHIFT  = const(0x07)
-WM8960_IFACE1_BCLK_NONINVERT = const(0x00)
-WM8960_IFACE1_BCLK_INVERT    = const(0x01)
+# _WM8960_IFACE1 BCLKINV bit
+_WM8960_IFACE1_BCLKINV_MASK = const(0x80)
+_WM8960_IFACE1_BCLKINV_SHIFT = const(0x07)
+_WM8960_IFACE1_BCLK_NONINVERT = const(0x00)
+_WM8960_IFACE1_BCLK_INVERT = const(0x01)
 
-# WM8960_IFACE1 ALRSWAP bit
-WM8960_IFACE1_ALRSWAP_MASK  = const(0x100)
-WM8960_IFACE1_ALRSWAP_SHIFT = const(0x08)
-WM8960_IFACE1_ADCCH_NORMAL  = const(0x00)
-WM8960_IFACE1_ADCCH_SWAP    = const(0x01)
+# _WM8960_IFACE1 ALRSWAP bit
+_WM8960_IFACE1_ALRSWAP_MASK = const(0x100)
+_WM8960_IFACE1_ALRSWAP_SHIFT = const(0x08)
+_WM8960_IFACE1_ADCCH_NORMAL = const(0x00)
+_WM8960_IFACE1_ADCCH_SWAP = const(0x01)
 
-# WM8960_POWER1
-WM8960_POWER1_VREF_MASK  = const(0x40)
-WM8960_POWER1_VREF_SHIFT = const(0x06)
+# _WM8960_POWER1
+_WM8960_POWER1_VREF_MASK = const(0x40)
+_WM8960_POWER1_VREF_SHIFT = const(0x06)
 
-WM8960_POWER1_AINL_MASK  = const(0x20)
-WM8960_POWER1_AINL_SHIFT = const(0x05)
+_WM8960_POWER1_AINL_MASK = const(0x20)
+_WM8960_POWER1_AINL_SHIFT = const(0x05)
 
-WM8960_POWER1_AINR_MASK  = const(0x10)
-WM8960_POWER1_AINR_SHIFT = const(0x04)
+_WM8960_POWER1_AINR_MASK = const(0x10)
+_WM8960_POWER1_AINR_SHIFT = const(0x04)
 
-WM8960_POWER1_ADCL_MASK  = const(0x08)
-WM8960_POWER1_ADCL_SHIFT = const(0x03)
+_WM8960_POWER1_ADCL_MASK = const(0x08)
+_WM8960_POWER1_ADCL_SHIFT = const(0x03)
 
-WM8960_POWER1_ADCR_MASK  = const(0x0)
-WM8960_POWER1_ADCR_SHIFT = const(0x02)
+_WM8960_POWER1_ADCR_MASK = const(0x0)
+_WM8960_POWER1_ADCR_SHIFT = const(0x02)
 
-WM8960_POWER1_MICB_MASK  = const(0x02)
-WM8960_POWER1_MICB_SHIFT = const(0x01)
+_WM8960_POWER1_MICB_MASK = const(0x02)
+_WM8960_POWER1_MICB_SHIFT = const(0x01)
 
-WM8960_POWER1_DIGENB_MASK  = const(0x01)
-WM8960_POWER1_DIGENB_SHIFT = const(0x00)
+_WM8960_POWER1_DIGENB_MASK = const(0x01)
+_WM8960_POWER1_DIGENB_SHIFT = const(0x00)
 
-# WM8960_POWER2
-WM8960_POWER2_DACL_MASK  = const(0x100)
-WM8960_POWER2_DACL_SHIFT = const(0x08)
+# _WM8960_POWER2
+_WM8960_POWER2_DACL_MASK = const(0x100)
+_WM8960_POWER2_DACL_SHIFT = const(0x08)
 
-WM8960_POWER2_DACR_MASK  = const(0x80)
-WM8960_POWER2_DACR_SHIFT = const(0x07)
+_WM8960_POWER2_DACR_MASK = const(0x80)
+_WM8960_POWER2_DACR_SHIFT = const(0x07)
 
-WM8960_POWER2_LOUT1_MASK  = const(0x40)
-WM8960_POWER2_LOUT1_SHIFT = const(0x06)
+_WM8960_POWER2_LOUT1_MASK = const(0x40)
+_WM8960_POWER2_LOUT1_SHIFT = const(0x06)
 
-WM8960_POWER2_ROUT1_MASK  = const(0x20)
-WM8960_POWER2_ROUT1_SHIFT = const(0x05)
+_WM8960_POWER2_ROUT1_MASK = const(0x20)
+_WM8960_POWER2_ROUT1_SHIFT = const(0x05)
 
-WM8960_POWER2_SPKL_MASK  = const(0x10)
-WM8960_POWER2_SPKL_SHIFT = const(0x04)
+_WM8960_POWER2_SPKL_MASK = const(0x10)
+_WM8960_POWER2_SPKL_SHIFT = const(0x04)
 
-WM8960_POWER2_SPKR_MASK  = const(0x08)
-WM8960_POWER2_SPKR_SHIFT = const(0x03)
+_WM8960_POWER2_SPKR_MASK = const(0x08)
+_WM8960_POWER2_SPKR_SHIFT = const(0x03)
 
-WM8960_POWER3_LMIC_MASK   = const(0x20)
-WM8960_POWER3_LMIC_SHIFT  = const(0x05)
-WM8960_POWER3_RMIC_MASK   = const(0x10)
-WM8960_POWER3_RMIC_SHIFT  = const(0x04)
-WM8960_POWER3_LOMIX_MASK  = const(0x08)
-WM8960_POWER3_LOMIX_SHIFT = const(0x03)
-WM8960_POWER3_ROMIX_MASK  = const(0x04)
-WM8960_POWER3_ROMIX_SHIFT = const(0x02)
+_WM8960_POWER3_LMIC_MASK = const(0x20)
+_WM8960_POWER3_LMIC_SHIFT = const(0x05)
+_WM8960_POWER3_RMIC_MASK = const(0x10)
+_WM8960_POWER3_RMIC_SHIFT = const(0x04)
+_WM8960_POWER3_LOMIX_MASK = const(0x08)
+_WM8960_POWER3_LOMIX_SHIFT = const(0x03)
+_WM8960_POWER3_ROMIX_MASK = const(0x04)
+_WM8960_POWER3_ROMIX_SHIFT = const(0x02)
 
-WM8960_I2C_ADDR = const(0x1a)
-
-WM8960_I2C_BAUDRATE = const(100000)
+_WM8960_I2C_ADDR = const(0x1A)
 
 # WM8960 maximum volume values
-WM8960_ADC_MAX_VOLUME_VALUE = const(0xFF)
-WM8960_DAC_MAX_VOLUME_VALUE = const(0xFF)
-WM8960_HEADPHONE_MAX_VOLUME_VALUE = const(0x7F)
-WM8960_HEADPHONE_MIN_VOLUME_VALUE = const(0x30)
-WM8960_LINEIN_MAX_VOLUME_VALUE = const(0x3F)
-WM8960_SPEAKER_MAX_VOLUME_VALUE = const(0x7F)
-WM8960_SPEAKER_MIN_VOLUME_VALUE = const(0x30)
+_WM8960_ADC_MAX_VOLUME_VALUE = const(0xFF)
+_WM8960_DAC_MAX_VOLUME_VALUE = const(0xFF)
+_WM8960_HEADPHONE_MAX_VOLUME_VALUE = const(0x7F)
+_WM8960_LINEIN_MAX_VOLUME_VALUE = const(0x3F)
+_WM8960_SPEAKER_MAX_VOLUME_VALUE = const(0x7F)
 
 # Config symbol names
 # Modules
-kWM8960_ModuleADC = const(0)  # ADC module in WM8960
-kWM8960_ModuleDAC = const(1)  # DAC module in WM8960
-kWM8960_ModuleVREF = const(2)  # VREF module
-kWM8960_ModuleHP = const(3)  # Headphone
-kWM8960_ModuleMICB = const(4)  # Mic bias
-kWM8960_ModuleMIC = const(5)  # Input Mic
-kWM8960_ModuleLineIn = const(6)  # Analog in PGA
-kWM8960_ModuleLineOut = const(7)  # Line out module
-kWM8960_ModuleSpeaker = const(8)  # Speaker module
-kWM8960_ModuleOMIX = const(9)  # Output mixer
+wm8960_module_ADC = const(0)  # ADC module in WM8960
+wm8960_module_DAC = const(1)  # DAC module in WM8960
+wm8960_module_VREF = const(2)  # VREF module
+wm8960_module_headphone = const(3)  # Headphone
+wm8960_module_mic_bias = const(4)  # Mic bias
+wm8960_module_mic = const(5)  # Input Mic
+wm8960_module_line_in = const(6)  # Analog in PGA
+wm8960_module_line_out = const(7)  # Line out module
+wm8960_module_speaker = const(8)  # Speaker module
+wm8960_module_omix = const(9)  # Output mixer
 
 # Route
-kWM8960_RouteBypass = const(0)  # LINEIN->Headphone.
-kWM8960_RoutePlayback = const(1)  #  I2SIN->DAC->Headphone.
-kWM8960_RoutePlaybackandRecord = const(2)  # I2SIN->DAC->Headphone, LINEIN->ADC->I2SOUT.
-kWM8960_RouteRecord = const(5)  # LINEIN->ADC->I2SOUT.
+wm8960_route_bypass = const(0)  # LINEIN->Headphone.
+wm8960_route_playback = const(1)  #  I2SIN->DAC->Headphone.
+wm8960_route_playback_record = const(2)  # I2SIN->DAC->Headphone, LINEIN->ADC->I2SOUT.
+wm8960_route_record = const(5)  # LINEIN->ADC->I2SOUT.
 
 # Input
-kWM8960_InputClosed = const(0)  # Input device is closed
-kWM8960_InputSingleEndedMic = const(1)  # Input as single ended mic, only use L/RINPUT1
-kWM8960_InputDifferentialMicInput2 = const(2)  # Input as differential mic, use L/RINPUT1 and L/RINPUT2
-kWM8960_InputDifferentialMicInput3 = const(3)  # Input as differential mic, use L/RINPUT1 and L/RINPUT3
-kWM8960_InputLineINPUT2 = const(4)  # Input as line input, only use L/RINPUT2
-kWM8960_InputLineINPUT3 = const(5)  # Input as line input, only use L/RINPUT3
+wm8960_input_closed = const(0)  # Input device is closed
+wm8960_input_single_ended_mic = const(1)  # Input as single ended mic, only use L/RINPUT1
+wm8960_input_differential_mic_input2 = const(2)  # Input as diff. mic, use L/RINPUT1 and L/RINPUT2
+wm8960_input_differential_mic_input3 = const(3)  # Input as diff. mic, use L/RINPUT1 and L/RINPUT3
+wm8960_input_line_input2 = const(4)  # Input as line input, only use L/RINPUT2
+wm8960_input_line_input3 = const(5)  # Input as line input, only use L/RINPUT3
 
 # Play source
-kWM8960_PlaySourcePGA = const(1)  # wm8960 play source PGA
-kWM8960_PlaySourceInput = const(2)  # wm8960 play source Input
-kWM8960_PlaySourceDAC = const(4)  # wm8960 play source DAC
+wm8960_play_source_PGA = const(1)  # wm8960 play source PGA
+wm8960_play_source_input = const(2)  # wm8960 play source Input
+wm8960_play_source_DAC = const(4)  # wm8960 play source DAC
 
 # Play Channel
-kWM8960_HeadphoneLeft = const(1)  # wm8960 headphone left channel
-kWM8960_HeadphoneRight = const(2)  # wm8960 headphone right channel
-kWM8960_SpeakerLeft = const(4)  # wm8960 speaker left channel
-kWM8960_SpeakerRight = const(8)  # wm8960 speaker right channel
+wm8960_headphone_left = const(1)  # wm8960 headphone left channel
+wm8960_headphone_right = const(2)  # wm8960 headphone right channel
+wm8960_speaker_left = const(4)  # wm8960 speaker left channel
+wm8960_speaker_right = const(8)  # wm8960 speaker right channel
+
+# ADC sync input
+wm8960_sync_adc = const(0)  # Use ADCLRC pin for ADC sync
+wm8960_sync_dac = const(1)  # used DACLRC pin for ADC sync
 
 #  Protocol type
-kWM8960_BusI2S = const(2)  # I2S type
-kWM8960_BusLeftJustified = const(1)  # Left justified mode
-kWM8960_BusRightJustified = const(0)  # Right justified mode
-kWM8960_BusPCMA = const(3)  # PCM A mode
-kWM8960_BusPCMB = const(3 | (1 << 4)) # PCM B mode
+wm8960_bus_I2S = const(2)  # I2S type
+wm8960_bus_left_justified = const(1)  # Left justified mode
+wm8960_bus_right_justified = const(0)  # Right justified mode
+wm8960_bus_PCMA = const(3)  # PCM A mode
+wm8960_bus_PCMB = const(3 | (1 << 4))  # PCM B mode
 
-# Sample Rate
-kWM8960_AudioSampleRate8KHz = const(8000)  # Sample rate 8000 Hz
-kWM8960_AudioSampleRate11025Hz = const(11025)  # Sample rate 11025 Hz
-kWM8960_AudioSampleRate12KHz = const(12000)  # Sample rate 12000 Hz
-kWM8960_AudioSampleRate16KHz = const(16000)  # Sample rate 16000 Hz
-kWM8960_AudioSampleRate22050Hz = const(22050)  # Sample rate 22050 Hz
-kWM8960_AudioSampleRate24KHz = const(24000)  # Sample rate 24000 Hz
-kWM8960_AudioSampleRate32KHz = const(32000)  # Sample rate 32000 Hz
-kWM8960_AudioSampleRate44100Hz = const(44100)  # Sample rate 44100 Hz
-kWM8960_AudioSampleRate48KHz = const(48000)  # Sample rate 48000 Hz
-kWM8960_AudioSampleRate96KHz = const(96000)  # Sample rate 96000 Hz
-kWM8960_AudioSampleRate192KHz = const(192000)  # Sample rate 192000 Hz
-kWM8960_AudioSampleRate384KHz = const(384000)  # Sample rate 384000 Hz
+# Sample Rate symbolic names dropped
 
-# Bit Width
-kWM8960_AudioBitWidth16bit = const(16)  # audio bit width 16
-kWM8960_AudioBitWidth20bit = const(20)  # audio bit width 20
-kWM8960_AudioBitWidth24bit = const(24)  # audio bit width 24
-kWM8960_AudioBitWidth32bit = const(32)  # audio bit width 32
+# Bit Width symbolic names dropped
 
 # Clock Source
-kWM8960_SysClkSourceMclk = const(0)  # sysclk source from external MCLK
-kWM8960_SysClkSourceInternalPLL = const(1)  # sysclk source from internal PLL
+wm8960_sysclk_source_mclk = const(0)  # sysclk source from external MCLK
+wm8960_sysclk_source_PLL = const(1)  # sysclk source from internal PLL
 
-_bitClockDividerDict = {
+_bit_clock_divider_dict = {
     2: 0,
     3: 1,
     4: 2,
@@ -263,461 +249,579 @@ _bitClockDividerDict = {
     48: 12,
 }
 
-# Just a simple class that populates the config data type.
-class WM8960_Config:
+_dac_divider_dict = {
+    1.0 * 256: 0b000,
+    1.5 * 256: 0b001,
+    2 * 256: 0b010,
+    3 * 256: 0b011,
+    4 * 256: 0b100,
+    5.5 * 256: 0b101,
+    6 * 256: 0b110,
+}
 
-    def __init__(self,
-                 route = kWM8960_RoutePlaybackandRecord,
-                 bus = kWM8960_BusI2S,
-                 formatMclkHz = 12000000,
-                 formatSampleRate = kWM8960_AudioSampleRate16KHz,
-                 formatBitWidth = kWM8960_AudioBitWidth16bit,
-                 master_slave = True,
-                 enableSpeaker = False,
-                 leftInputSource = kWM8960_InputDifferentialMicInput3,
-                 rightInputSource = kWM8960_InputDifferentialMicInput2,
-                 playSource = kWM8960_PlaySourceDAC,
-                 masterClockSource = kWM8960_SysClkSourceInternalPLL,
-                 masterClockFreq = 12288000,
-                ):
-
-        self.route = route  # Audio data route.
-        self.bus = bus  # Audio transfer protocol
-        self.formatMclkHz = formatMclkHz  # Audio format
-        self.formatSampleRate = formatSampleRate  # Audio format
-        self.formatBitWidth = formatBitWidth  # Audio format
-        self.master_slave = master_slave  # Master or slave.
-        self.enableSpeaker = enableSpeaker  # True means enable class D speaker as output, False means no
-        self.leftInputSource = leftInputSource  # Left input source for WM8960
-        self.rightInputSource = rightInputSource  # Right input source for wm8960
-        self.playSource = playSource  # play source
-        self.masterClockSource = masterClockSource  # master clock configurations
-        self.masterClockFreq = masterClockFreq  # master clock configurations
+_audio_word_length_dict = {
+    16: 0b00,
+    20: 0b01,
+    24: 0b10,
+    32: 0b11,
+}
 
 
 class WM8960:
 
-    wm8960_reg = [
-        0x0097, 0x0097, 0x0000, 0x0000, 0x0000, 0x0008, 0x0000,
-        0x000a, 0x01c0, 0x0000, 0x00ff, 0x00ff, 0x0000, 0x0000,
-        0x0000, 0x0000, 0x0000, 0x007b, 0x0100, 0x0032, 0x0000,
-        0x00c3, 0x00c3, 0x01c0, 0x0000, 0x0000, 0x0000, 0x0000,
-        0x0000, 0x0000, 0x0000, 0x0000, 0x0100, 0x0100, 0x0050,
-        0x0050, 0x0050, 0x0050, 0x0000, 0x0000, 0x0000, 0x0000,
-        0x0040, 0x0000, 0x0000, 0x0050, 0x0050, 0x0000, 0x0002,
-        0x0037, 0x004d, 0x0080, 0x0008, 0x0031, 0x0026, 0x00e9
-    ]
+    # register cache of 56 short integers
+    wm8960_reg = array.array("H", bytearray(56 * 2))
 
-    def __init__(self, config, i2c, i2c_address = WM8960_I2C_ADDR):
+    def __init__(
+        self,
+        i2c,
+        sample_rate=16000,
+        bits=16,
+        route=wm8960_route_playback_record,
+        protocol=wm8960_bus_I2S,
+        master_slave=False,
+        enable_speaker=False,
+        left_input=wm8960_input_differential_mic_input3,
+        right_input=wm8960_input_differential_mic_input2,
+        play_source=wm8960_play_source_DAC,
+        master_clock_source=wm8960_sysclk_source_PLL,
+        master_clock_freq=None,
+        adc_sync=wm8960_sync_dac,
+        i2c_address=_WM8960_I2C_ADDR,
+    ):
         self.i2c = i2c
         self.i2c_address = i2c_address
-        self.value_buffer = bytearray(1)
+        self.value_buffer = bytearray(2)
 
-        sysclk = config.formatMclkHz
+        # check parameter consistency and set the sysclk value
+        if master_clock_source == wm8960_sysclk_source_PLL:
+            if sample_rate in (11025, 22050, 44100):
+                sysclk = 11289600
+            else:
+                sysclk = 12288000
+            if master_clock_freq is None:
+                master_clock_freq = sysclk
+        else:  # master_clock_source == wm8960_sysclk_source_mclk
+            if master_clock_freq is None:
+                master_clock_freq = sample_rate * 256
+            sysclk = master_clock_freq
 
         # Reset the codec
-        self.WM8960_WriteReg(WM8960_RESET, 0x00)
+        self.write_reg(_WM8960_RESET, 0x00)
         #
         # VMID=50K, Enable VREF, AINL, AINR, ADCL and ADCR
         # I2S_IN (bit 0), I2S_OUT (bit 1), DAP (bit 4), DAC (bit 5), ADC (bit 6) are powered on
 
-        self.WM8960_WriteReg(WM8960_POWER1, 0xFE)
+        self.write_reg(_WM8960_POWER1, 0xFE)
         #
         # Enable DACL, DACR, LOUT1, ROUT1, PLL down, SPKL, SPKR
-        self.WM8960_WriteReg(WM8960_POWER2, 0x1F8)
+        self.write_reg(_WM8960_POWER2, 0x1F8)
         #
         # Enable left and right channel input PGA, left and right output mixer
-        self.WM8960_WriteReg(WM8960_POWER3, 0x3C)
-        # ADC and DAC uses same clock
-        self.WM8960_WriteReg(WM8960_IFACE2, 0x40)
+        self.write_reg(_WM8960_POWER3, 0x3C)
+
+        if adc_sync == wm8960_sync_adc:
+            # ADC and DAC use different Frame Clock Pins
+            self.write_reg(_WM8960_IFACE2, 0x00)  # ADCLRC 0x00:Input 0x40:output.
+        else:
+            # ADC and DAC use the same Frame Clock Pin
+            self.write_reg(_WM8960_IFACE2, 0x40)  # ADCLRC 0x00:Input 0x40:output.
         # set data route
-        self.WM8960_SetDataRoute(config.route)
+        self.set_data_route(route)
         # set data protocol
-        self.WM8960_SetProtocol(config.bus)
+        self.set_protocol(protocol)
 
-        if config.masterClockSource == kWM8960_SysClkSourceInternalPLL:
-            self.WM8960_SetInternalPllConfig(config.formatMclkHz, config.masterClockFreq,
-                config.formatSampleRate, config.formatBitWidth)
-            sysclk = config.masterClockFreq
-
+        if master_clock_source == wm8960_sysclk_source_PLL:
+            self.set_internal_pll_config(master_clock_freq, sysclk)
         # set master or slave
-        if config.master_slave:
-            self.WM8960_SetMasterClock(sysclk, config.formatSampleRate, config.formatBitWidth)
+        if master_slave:
+            self.set_master_clock(sysclk, sample_rate, bits)
 
-        self.WM8960_SetMasterSlave(config.master_slave)
+        self.set_master_slave(master_slave)
         # select left input
-        self.WM8960_SetLeftInput(config.leftInputSource)
+        self.set_left_input(left_input)
         # select right input
-        self.WM8960_SetRightInput(config.rightInputSource)
+        self.set_right_input(right_input)
         # speaker power
-        if config.enableSpeaker:
-            self.WM8960_SetModule(kWM8960_ModuleSpeaker, True)
+        if enable_speaker:
+            self.set_module(wm8960_module_speaker, True)
 
-        self.WM8960_WriteReg(WM8960_ADDCTL1, 0x0C0)
-        self.WM8960_WriteReg(WM8960_ADDCTL4, 0x40)
+        self.write_reg(_WM8960_ADDCTL1, 0x0C0)
+        self.write_reg(_WM8960_ADDCTL4, 0x60)  # Set GPIO1 to 0.
 
-        self.WM8960_WriteReg(WM8960_BYPASS1, 0x0)
-        self.WM8960_WriteReg(WM8960_BYPASS2, 0x0)
+        self.write_reg(_WM8960_BYPASS1, 0x0)
+        self.write_reg(_WM8960_BYPASS2, 0x0)
         #
         # ADC volume, 0dB
-        self.WM8960_WriteReg(WM8960_LADC, 0x1C3)
-        self.WM8960_WriteReg(WM8960_RADC, 0x1C3)
+        self.write_reg(_WM8960_LADC, 0x1C3)
+        self.write_reg(_WM8960_RADC, 0x1C3)
         #
         # Digital DAC volume, 0dB
-        self.WM8960_WriteReg(WM8960_LDAC, 0x1E0)
-        self.WM8960_WriteReg(WM8960_RDAC, 0x1E0)
+        self.write_reg(_WM8960_LDAC, 0x1E0)
+        self.write_reg(_WM8960_RDAC, 0x1E0)
         #
         # Headphone volume, LOUT1 and ROUT1, 0dB
-        self.WM8960_WriteReg(WM8960_LOUT1, 0x16F)
-        self.WM8960_WriteReg(WM8960_ROUT1, 0x16F)
+        self.write_reg(_WM8960_LOUT1, 0x16F)
+        self.write_reg(_WM8960_ROUT1, 0x16F)
         #
         # speaker volume 6dB
-        self.WM8960_WriteReg(WM8960_LOUT2, 0x1ff)
-        self.WM8960_WriteReg(WM8960_ROUT2, 0x1ff)
+        self.write_reg(_WM8960_LOUT2, 0x1FF)
+        self.write_reg(_WM8960_ROUT2, 0x1FF)
         #
         # enable class D output
-        self.WM8960_WriteReg(WM8960_CLASSD1, 0xf7)
+        self.write_reg(_WM8960_CLASSD1, 0xF7)
         #
         # Unmute DAC.
-        self.WM8960_WriteReg(WM8960_DACCTL1, 0x0000)
-        self.WM8960_WriteReg(WM8960_LINVOL, 0x117)
-        self.WM8960_WriteReg(WM8960_RINVOL, 0x117)
+        self.write_reg(_WM8960_DACCTL1, 0x0000)
+        self.write_reg(_WM8960_LINVOL, 0x117)
+        self.write_reg(_WM8960_RINVOL, 0x117)
 
-        self.WM8960_ConfigDataFormat(sysclk, config.formatSampleRate, config.formatBitWidth)
+        self.config_data_format(sysclk, sample_rate, bits)
 
+        # Add shorter external names
+        self.mute = self.set_mute
 
     def deinit(self):
 
-        self.WM8960_SetModule(kWM8960_ModuleADC, False)
-        self.WM8960_SetModule(kWM8960_ModuleDAC, False)
-        self.WM8960_SetModule(kWM8960_ModuleVREF, False)
-        self.WM8960_SetModule(kWM8960_ModuleLineIn, False)
-        self.WM8960_SetModule(kWM8960_ModuleLineOut, False)
-        self.WM8960_SetModule(kWM8960_ModuleSpeaker, False)
+        self.set_module(wm8960_module_ADC, False)
+        self.set_module(wm8960_module_DAC, False)
+        self.set_module(wm8960_module_VREF, False)
+        self.set_module(wm8960_module_line_in, False)
+        self.set_module(wm8960_module_line_out, False)
+        self.set_module(wm8960_module_speaker, False)
 
-
-    def WM8960_SetInternalPllConfig(self, inputMclk, outputClk, sampleRate, bitWidth):
-        pllF2 = outputClk * 4
-        pllPrescale = 0
-        sysclkDiv = 1
-        pllR = 0
-        pllN = 0
-        pllK = 0
-        fracMode = 0
+    def set_internal_pll_config(self, input_mclk, output_clk):
+        pllF2 = output_clk * 4
+        pll_prescale = 0
+        sysclk_div = 1
+        frac_mode = 0
 
         # disable PLL power
-        self.WM8960_ModifyReg(WM8960_POWER2, 1, 0)
-        self.WM8960_ModifyReg(WM8960_CLOCK1, 7, 0)
+        self.modify_reg(_WM8960_POWER2, 1, 0)
+        self.modify_reg(_WM8960_CLOCK1, 7, 0)
 
-        pllN = pllF2 // inputMclk
-        if pllN < WM8960_PLL_N_MIN_VALUE:
-            inputMclk >>= 1
-            pllPrescale = 1
-            pllN = pllF2 // inputMclk
-            if pllN < WM8960_PLL_N_MIN_VALUE:
-                sysclkDiv = 2
-                pllN = pllF2 // inputMclk * sysclkDiv
+        pllN = pllF2 // input_mclk
+        if pllN < _WM8960_PLL_N_MIN_VALUE:
+            input_mclk //= 2
+            pll_prescale = 1
+            pllN = pllF2 // input_mclk
+            if pllN < _WM8960_PLL_N_MIN_VALUE:
+                sysclk_div = 2
+                pllF2 *= 2
+                pllN = pllF2 // input_mclk
 
-        if (pllN < WM8960_PLL_N_MIN_VALUE) or (pllN > WM8960_PLL_N_MAX_VALUE):
-            raise ValueError('Invalid Argument')
+        if (pllN < _WM8960_PLL_N_MIN_VALUE) or (pllN > _WM8960_PLL_N_MAX_VALUE):
+            raise ValueError("Invalid MCLK vs. sysclk ratio")
 
-        pllR = pllF2 // (inputMclk // 1000) * sysclkDiv
-        pllK = ((1 << 24) * (pllR - pllN * 1000)) // 1000
+        pllK = ((pllF2 % input_mclk) * (1 << 24)) // input_mclk
         if pllK != 0:
-            fracMode = 1
+            frac_mode = 1
 
-        self.WM8960_WriteReg(WM8960_PLL1,
-                        (fracMode << 5) | (pllPrescale << 4) | (pllN & 0x0F))
-        self.WM8960_WriteReg(WM8960_PLL2, (pllK >> 16) & 0xFF)
-        self.WM8960_WriteReg(WM8960_PLL3, (pllK >> 8) & 0xFF)
-        self.WM8960_WriteReg(WM8960_PLL4, pllK & 0xFF)
+        self.write_reg(_WM8960_PLL1, (frac_mode << 5) | (pll_prescale << 4) | (pllN & 0x0F))
+        self.write_reg(_WM8960_PLL2, (pllK >> 16) & 0xFF)
+        self.write_reg(_WM8960_PLL3, (pllK >> 8) & 0xFF)
+        self.write_reg(_WM8960_PLL4, pllK & 0xFF)
         # enable PLL power
-        self.WM8960_ModifyReg(WM8960_POWER2, 1, 1)
-        self.WM8960_ModifyReg(WM8960_CLOCK1, 7, ((0 if sysclkDiv == 1 else sysclkDiv) << 1) | 1)
+        self.modify_reg(_WM8960_POWER2, 1, 1)
+        self.modify_reg(_WM8960_CLOCK1, 7, ((0 if sysclk_div == 1 else sysclk_div) << 1) | 1)
 
-
-    def WM8960_SetMasterClock(self, sysclk, sampleRate, bitWidth):
-        bitClockDivider = (sysclk * 2) // (sampleRate * bitWidth * 2)
-        regDivider = _bitClockDividerDict[bitClockDivider]
+    def set_master_clock(self, sysclk, sample_rate, bit_width):
+        bit_clock_divider = sysclk // (sample_rate * bit_width * 2)
+        try:
+            reg_divider = _bit_clock_divider_dict[bit_clock_divider]
+        except:
+            raise ValueError("Invalid ratio of sysclk sample rate and bits")
         # configure the master bit clock divider will be better
-        self.WM8960_ModifyReg(WM8960_CLOCK2, WM8960_CLOCK2_BCLK_DIV_MASK, regDivider)
+        self.modify_reg(_WM8960_CLOCK2, _WM8960_CLOCK2_BCLK_DIV_MASK, reg_divider)
 
-
-    def WM8960_SetMasterSlave(self, master):
+    def set_master_slave(self, master):
         if master:
-            self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_MS_MASK,
-                ((WM8960_IFACE1_MASTER << WM8960_IFACE1_MS_SHIFT) & WM8960_IFACE1_MS_MASK))
+            self.modify_reg(
+                _WM8960_IFACE1,
+                _WM8960_IFACE1_MS_MASK,
+                _WM8960_IFACE1_MASTER << _WM8960_IFACE1_MS_SHIFT
+            )
 
         else:
-            self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_MS_MASK,
-                ((WM8960_IFACE1_SLAVE << WM8960_IFACE1_MS_SHIFT) & WM8960_IFACE1_MS_MASK))
+            self.modify_reg(
+                _WM8960_IFACE1, _WM8960_IFACE1_MS_MASK, _WM8960_IFACE1_SLAVE << _WM8960_IFACE1_MS_SHIFT
+            )
 
+    def set_module(self, module, is_enabled):
 
-    def WM8960_SetModule(self, module, isEnabled):
+        if module == wm8960_module_ADC:
 
-            if module == kWM8960_ModuleADC:
+            self.modify_reg(
+                _WM8960_POWER1, _WM8960_POWER1_ADCL_MASK, (is_enabled << _WM8960_POWER1_ADCL_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER1, _WM8960_POWER1_ADCR_MASK, (is_enabled << _WM8960_POWER1_ADCR_SHIFT)
+            )
 
-                self.WM8960_ModifyReg(WM8960_POWER1, WM8960_POWER1_ADCL_MASK,
-                    (isEnabled << WM8960_POWER1_ADCL_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER1, WM8960_POWER1_ADCR_MASK,
-                    (isEnabled << WM8960_POWER1_ADCR_SHIFT))
+        elif module == wm8960_module_DAC:
 
-            elif module ==  kWM8960_ModuleDAC:
+            self.modify_reg(
+                _WM8960_POWER2, _WM8960_POWER2_DACL_MASK, (is_enabled << _WM8960_POWER2_DACL_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER2, _WM8960_POWER2_DACR_MASK, (is_enabled << _WM8960_POWER2_DACR_SHIFT)
+            )
 
-                self.WM8960_ModifyReg(WM8960_POWER2, WM8960_POWER2_DACL_MASK,
-                    (isEnabled << WM8960_POWER2_DACL_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER2, WM8960_POWER2_DACR_MASK,
-                    (isEnabled << WM8960_POWER2_DACR_SHIFT))
+        elif module == wm8960_module_VREF:
 
-            elif module ==  kWM8960_ModuleVREF:
+            self.modify_reg(
+                _WM8960_POWER1, _WM8960_POWER1_VREF_MASK, (is_enabled << _WM8960_POWER1_VREF_SHIFT)
+            )
 
-                self.WM8960_ModifyReg(WM8960_POWER1, WM8960_POWER1_VREF_MASK,
-                    (isEnabled << WM8960_POWER1_VREF_SHIFT))
+        elif module == wm8960_module_line_in:
 
-            elif module ==  kWM8960_ModuleLineIn:
+            self.modify_reg(
+                _WM8960_POWER1, _WM8960_POWER1_AINL_MASK, (is_enabled << _WM8960_POWER1_AINL_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER1, _WM8960_POWER1_AINR_MASK, (is_enabled << _WM8960_POWER1_AINR_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER3, _WM8960_POWER3_LMIC_MASK, (is_enabled << _WM8960_POWER3_LMIC_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER3, _WM8960_POWER3_RMIC_MASK, (is_enabled << _WM8960_POWER3_RMIC_SHIFT)
+            )
 
-                self.WM8960_ModifyReg(WM8960_POWER1, WM8960_POWER1_AINL_MASK,
-                    (isEnabled << WM8960_POWER1_AINL_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER1, WM8960_POWER1_AINR_MASK,
-                    (isEnabled << WM8960_POWER1_AINR_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER3, WM8960_POWER3_LMIC_MASK,
-                    (isEnabled << WM8960_POWER3_LMIC_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER3, WM8960_POWER3_RMIC_MASK,
-                    (isEnabled << WM8960_POWER3_RMIC_SHIFT))
+        elif module == wm8960_module_line_out:
 
-            elif module ==  kWM8960_ModuleLineOut:
+            self.modify_reg(
+                _WM8960_POWER2, _WM8960_POWER2_LOUT1_MASK, (is_enabled << _WM8960_POWER2_LOUT1_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER2, _WM8960_POWER2_ROUT1_MASK, (is_enabled << _WM8960_POWER2_ROUT1_SHIFT)
+            )
 
-                self.WM8960_ModifyReg(WM8960_POWER2, WM8960_POWER2_LOUT1_MASK,
-                    (isEnabled << WM8960_POWER2_LOUT1_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER2, WM8960_POWER2_ROUT1_MASK,
-                    (isEnabled << WM8960_POWER2_ROUT1_SHIFT))
+        elif module == wm8960_module_mic_bias:
 
-            elif module ==  kWM8960_ModuleMICB:
+            self.modify_reg(
+                _WM8960_POWER1, _WM8960_POWER1_MICB_MASK, (is_enabled << _WM8960_POWER1_MICB_SHIFT)
+            )
 
-                self.WM8960_ModifyReg(WM8960_POWER1, WM8960_POWER1_MICB_MASK,
-                    (isEnabled << WM8960_POWER1_MICB_SHIFT))
+        elif module == wm8960_module_speaker:
 
-            elif module ==  kWM8960_ModuleSpeaker:
+            self.modify_reg(
+                _WM8960_POWER2, _WM8960_POWER2_SPKL_MASK, (is_enabled << _WM8960_POWER2_SPKL_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER2, _WM8960_POWER2_SPKR_MASK, (is_enabled << _WM8960_POWER2_SPKR_SHIFT)
+            )
+            self.write_reg(_WM8960_CLASSD1, 0xF7)
 
-                self.WM8960_ModifyReg(WM8960_POWER2, WM8960_POWER2_SPKL_MASK,
-                    (isEnabled << WM8960_POWER2_SPKL_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER2, WM8960_POWER2_SPKR_MASK,
-                    (isEnabled << WM8960_POWER2_SPKR_SHIFT))
-                self.WM8960_WriteReg(WM8960_CLASSD1, 0xF7)
+        elif module == wm8960_module_omix:
 
-            elif module ==  kWM8960_ModuleOMIX:
+            self.modify_reg(
+                _WM8960_POWER3, _WM8960_POWER3_LOMIX_MASK, (is_enabled << _WM8960_POWER3_LOMIX_SHIFT)
+            )
+            self.modify_reg(
+                _WM8960_POWER3, _WM8960_POWER3_ROMIX_MASK, (is_enabled << _WM8960_POWER3_ROMIX_SHIFT)
+            )
+        else:
+            raise ValueError("Invalid module")
 
-                self.WM8960_ModifyReg(WM8960_POWER3, WM8960_POWER3_LOMIX_MASK,
-                    (isEnabled << WM8960_POWER3_LOMIX_SHIFT))
-                self.WM8960_ModifyReg(WM8960_POWER3, WM8960_POWER3_ROMIX_MASK,
-                    (isEnabled << WM8960_POWER3_ROMIX_SHIFT))
-            else:
-                raise ValueError('Invalid Argument')
-
-
-    def WM8960_SetDataRoute(self, route):
-        if route ==  kWM8960_RouteBypass:
+    def set_data_route(self, route):
+        if route == wm8960_route_bypass:
             # Bypass means from line-in to HP
             # Left LINPUT3 to left output mixer, LINPUT3 left output mixer volume = 0dB
-            self.WM8960_WriteReg(WM8960_LOUTMIX, 0x80)
+            self.write_reg(_WM8960_LOUTMIX, 0x80)
             # Right RINPUT3 to right output mixer, RINPUT3 right output mixer volume = 0dB
-            self.WM8960_WriteReg(WM8960_ROUTMIX, 0x80)
+            self.write_reg(_WM8960_ROUTMIX, 0x80)
 
-        elif route ==  kWM8960_RoutePlayback:
+        elif route == wm8960_route_playback:
             # Data route I2S_IN-> DAC-> HP
             #
             # Left DAC to left output mixer, LINPUT3 left output mixer volume = 0dB
-            self.WM8960_WriteReg(WM8960_LOUTMIX, 0x100)
+            self.write_reg(_WM8960_LOUTMIX, 0x100)
             # Right DAC to right output mixer, RINPUT3 right output mixer volume = 0dB
-            self.WM8960_WriteReg(WM8960_ROUTMIX, 0x100)
-            self.WM8960_WriteReg(WM8960_POWER3, 0x0C)
+            self.write_reg(_WM8960_ROUTMIX, 0x100)
+            self.write_reg(_WM8960_POWER3, 0x0C)
             # Set power for DAC
-            self.WM8960_SetModule(kWM8960_ModuleDAC, True)
-            self.WM8960_SetModule(kWM8960_ModuleOMIX, True)
-            self.WM8960_SetModule(kWM8960_ModuleLineOut, True)
+            self.set_module(wm8960_module_DAC, True)
+            self.set_module(wm8960_module_omix, True)
+            self.set_module(wm8960_module_line_out, True)
 
-        elif route ==  kWM8960_RoutePlaybackandRecord:
+        elif route == wm8960_route_playback_record:
             #
             # Left DAC to left output mixer, LINPUT3 left output mixer volume = 0dB
-            self.WM8960_WriteReg(WM8960_LOUTMIX, 0x100)
+            self.write_reg(_WM8960_LOUTMIX, 0x100)
             # Right DAC to right output mixer, RINPUT3 right output mixer volume = 0dB
-            self.WM8960_WriteReg(WM8960_ROUTMIX, 0x100)
-            self.WM8960_WriteReg(WM8960_POWER3, 0x3C)
-            self.WM8960_SetModule(kWM8960_ModuleDAC, True)
-            self.WM8960_SetModule(kWM8960_ModuleADC, True)
-            self.WM8960_SetModule(kWM8960_ModuleLineIn, True)
-            self.WM8960_SetModule(kWM8960_ModuleOMIX, True)
-            self.WM8960_SetModule(kWM8960_ModuleLineOut, True)
+            self.write_reg(_WM8960_ROUTMIX, 0x100)
+            self.write_reg(_WM8960_POWER3, 0x3C)
+            self.set_module(wm8960_module_DAC, True)
+            self.set_module(wm8960_module_ADC, True)
+            self.set_module(wm8960_module_line_in, True)
+            self.set_module(wm8960_module_omix, True)
+            self.set_module(wm8960_module_line_out, True)
 
-        elif route ==  kWM8960_RouteRecord:
+        elif route == wm8960_route_record:
             # LINE_IN->ADC->I2S_OUT
             # Left and right input boost, LIN3BOOST and RIN3BOOST = 0dB
-            self.WM8960_WriteReg(WM8960_POWER3, 0x30)
+            self.write_reg(_WM8960_POWER3, 0x30)
             # Power up ADC and AIN
-            self.WM8960_SetModule(kWM8960_ModuleLineIn, True)
-            self.WM8960_SetModule(kWM8960_ModuleADC, True)
+            self.set_module(wm8960_module_line_in, True)
+            self.set_module(wm8960_module_ADC, True)
 
         else:
-            raise ValueError('Invalid Argument')
+            raise ValueError("Invalid route")
 
+    def set_left_input(self, input):
 
-    def WM8960_SetLeftInput(self, input):
+        if input == wm8960_input_closed:
+            # Disable the input
+            val = self.read_reg(_WM8960_POWER1)
+            val &= ~(_WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK)
+            self.write_reg(_WM8960_POWER1, val)
 
-        if input ==  kWM8960_InputClosed:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val &= ~(WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-
-        elif input ==  kWM8960_InputSingleEndedMic:
+        elif input == wm8960_input_single_ended_mic:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK | WM8960_POWER1_MICB_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            self.WM8960_WriteReg(WM8960_LINPATH, 0x138)
-            self.WM8960_WriteReg(WM8960_LINVOL, 0x117)
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            self.write_reg(_WM8960_LINPATH, 0x138)
+            self.write_reg(_WM8960_LINVOL, 0x117)
 
-        elif input ==  kWM8960_InputDifferentialMicInput2:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK | WM8960_POWER1_MICB_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            self.WM8960_WriteReg(WM8960_LINPATH, 0x178)
-            self.WM8960_WriteReg(WM8960_LINVOL, 0x117)
+        elif input == wm8960_input_differential_mic_input2:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            self.write_reg(_WM8960_LINPATH, 0x178)
+            self.write_reg(_WM8960_LINVOL, 0x117)
 
-        elif input ==  kWM8960_InputDifferentialMicInput3:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK | WM8960_POWER1_MICB_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            self.WM8960_WriteReg(WM8960_LINPATH, 0x1B8)
-            self.WM8960_WriteReg(WM8960_LINVOL, 0x117)
+        elif input == wm8960_input_differential_mic_input3:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            self.write_reg(_WM8960_LINPATH, 0x1B8)
+            self.write_reg(_WM8960_LINVOL, 0x117)
 
-        elif input ==  kWM8960_InputLineINPUT2:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            val = self.WM8960_ReadReg(WM8960_INBMIX1)
+        elif input == wm8960_input_line_input2:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            val = self.read_reg(_WM8960_INBMIX1)
             val |= 0xE
-            self.WM8960_WriteReg(WM8960_INBMIX1, val)
+            self.write_reg(_WM8960_INBMIX1, val)
 
-        elif input ==  kWM8960_InputLineINPUT3:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            val = self.WM8960_ReadReg(WM8960_INBMIX1)
+        elif input == wm8960_input_line_input3:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            val = self.read_reg(_WM8960_INBMIX1)
             val |= 0x70
-            self.WM8960_WriteReg(WM8960_INBMIX1, val)
+            self.write_reg(_WM8960_INBMIX1, val)
 
         else:
-            raise ValueError('Invalid Argument')
+            raise ValueError("Invalid input name")
 
+    def set_right_input(self, input):
 
-    def WM8960_SetRightInput(self, input):
+        if input == wm8960_input_closed:
+            # Disable the input
+            val = self.read_reg(_WM8960_POWER1)
+            val &= ~(_WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK)
+            self.write_reg(_WM8960_POWER1, val)
 
-        if input ==  kWM8960_InputClosed:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val &= ~(WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-
-        elif input ==  kWM8960_InputSingleEndedMic:
+        elif input == wm8960_input_single_ended_mic:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK | WM8960_POWER1_MICB_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            self.WM8960_WriteReg(WM8960_RINPATH, 0x138)
-            self.WM8960_WriteReg(WM8960_RINVOL, 0x117)
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            self.write_reg(_WM8960_RINPATH, 0x138)
+            self.write_reg(_WM8960_RINVOL, 0x117)
 
-        elif input ==  kWM8960_InputDifferentialMicInput2:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK | WM8960_POWER1_MICB_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            self.WM8960_WriteReg(WM8960_RINPATH, 0x178)
-            self.WM8960_WriteReg(WM8960_RINVOL, 0x117)
+        elif input == wm8960_input_differential_mic_input2:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            self.write_reg(_WM8960_RINPATH, 0x178)
+            self.write_reg(_WM8960_RINVOL, 0x117)
 
-        elif input ==  kWM8960_InputDifferentialMicInput3:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK | WM8960_POWER1_MICB_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            self.WM8960_WriteReg(WM8960_RINPATH, 0x1B8)
-            self.WM8960_WriteReg(WM8960_RINVOL, 0x117)
+        elif input == wm8960_input_differential_mic_input3:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            self.write_reg(_WM8960_RINPATH, 0x1B8)
+            self.write_reg(_WM8960_RINVOL, 0x117)
 
-        elif input ==  kWM8960_InputLineINPUT2:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            val = self.WM8960_ReadReg(WM8960_INBMIX2)
+        elif input == wm8960_input_line_input2:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            val = self.read_reg(_WM8960_INBMIX2)
             val |= 0xE
-            self.WM8960_WriteReg(WM8960_INBMIX2, val)
+            self.write_reg(_WM8960_INBMIX2, val)
 
-        elif input ==  kWM8960_InputLineINPUT3:
-            val = self.WM8960_ReadReg(WM8960_POWER1)
-            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK)
-            self.WM8960_WriteReg(WM8960_POWER1, val)
-            val = self.WM8960_ReadReg(WM8960_INBMIX2)
+        elif input == wm8960_input_line_input3:
+            val = self.read_reg(_WM8960_POWER1)
+            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
+            self.write_reg(_WM8960_POWER1, val)
+            val = self.read_reg(_WM8960_INBMIX2)
             val |= 0x70
-            self.WM8960_WriteReg(WM8960_INBMIX2, val)
+            self.write_reg(_WM8960_INBMIX2, val)
 
         else:
-            raise ValueError('Invalid Argument')
+            raise ValueError("Invalid input name")
 
+    def set_protocol(self, protocol):
+        self.modify_reg(
+            _WM8960_IFACE1, _WM8960_IFACE1_FORMAT_MASK | _WM8960_IFACE1_LRP_MASK, protocol
+        )
 
-    def WM8960_SetProtocol(self, protocol):
-        self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_FORMAT_MASK | WM8960_IFACE1_LRP_MASK,
-            protocol)
-
-
-    def WM8960_ConfigDataFormat(self, sysclk, sample_rate, bits):
-
+    def config_data_format(self, sysclk, sample_rate, bits):
         #  Compute sample rate divider, dac and adc are the same sample rate
-        divider = sysclk // sample_rate
-        if divider == 256:
-            val = 0
-        elif divider > 256:
-            val = (uint16_t)(((divider // 256) << 6) | ((divider // 256) << 3))
+        try:
+            divider = _dac_divider_dict[sysclk // sample_rate]
+            wl = _audio_word_length_dict[bits]
+        except:
+            raise ValueError("Invalid ratio sysclk/sample_rate or invalid bit length")
+
+        self.modify_reg(_WM8960_CLOCK1, 0x1F8, divider << 6 | divider << 3)
+        self.modify_reg(_WM8960_IFACE1, _WM8960_IFACE1_WL_MASK,wl << _WM8960_IFACE1_WL_SHIFT)
+
+    def set_volume(self, module, volume, volume_r=None):
+
+        if volume_r is None:
+            volume_r = volume
+
+        if module == wm8960_module_ADC:
+            if volume <= _WM8960_ADC_MAX_VOLUME_VALUE:
+                self.write_reg(_WM8960_LADC, volume)
+                self.write_reg(_WM8960_RADC, volume_r)
+                # Update volume
+                volume |= 0x100
+                self.write_reg(_WM8960_LADC, volume)
+                self.write_reg(_WM8960_RADC, volume_r)
+
+        elif module == wm8960_module_DAC:
+            if volume <= _WM8960_DAC_MAX_VOLUME_VALUE:
+                self.write_reg(_WM8960_LDAC, volume)
+                self.write_reg(_WM8960_RDAC, volume_r)
+                volume |= 0x100
+                self.write_reg(_WM8960_LDAC, volume)
+                self.write_reg(_WM8960_RDAC, volume_r)
+
+        elif module == wm8960_module_headphone:
+            if volume <= _WM8960_HEADPHONE_MAX_VOLUME_VALUE:
+                self.write_reg(_WM8960_LOUT1, volume)
+                self.write_reg(_WM8960_ROUT1, volume_r)
+                volume |= 0x100
+                self.write_reg(_WM8960_LOUT1, volume)
+                self.write_reg(_WM8960_ROUT1, volume_r)
+
+        elif module == wm8960_module_line_in:
+            if volume <= _WM8960_LINEIN_MAX_VOLUME_VALUE:
+                self.write_reg(_WM8960_LINVOL, volume)
+                self.write_reg(_WM8960_RINVOL, volume_r)
+                volume |= 0x100
+                self.write_reg(_WM8960_LINVOL, volume)
+                self.write_reg(_WM8960_RINVOL, volume_r)
+
+        elif module == wm8960_module_speaker:
+            if volume <= _WM8960_SPEAKER_MAX_VOLUME_VALUE:
+                self.write_reg(_WM8960_LOUT2, volume)
+                self.write_reg(_WM8960_ROUT2, volume_r)
+                volume |= 0x100
+                self.write_reg(_WM8960_LOUT2, volume)
+                self.write_reg(_WM8960_ROUT2, volume_r)
         else:
-            raise ValueError('Invalid Argument')
+            raise ValueError("Invalid module")
 
-        self.WM8960_ModifyReg(WM8960_CLOCK1, 0x1F8, val)
+    def get_volume(self, module):
 
-        # Slave mode (MS = 0), LRP = 0, 32bit WL, left justified (FORMAT[1:0]=0b01)
-        if bits == 16:
-            self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
-                (((WM8960_IFACE1_WL_16BITS) << WM8960_IFACE1_WL_SHIFT) & WM8960_IFACE1_WL_MASK))
+        if module == wm8960_module_ADC:
+            vol_l = self.read_reg(_WM8960_LADC)
+            vol_r = self.read_reg(_WM8960_RADC)
 
-        elif bits ==  20:
-            self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
-                (((WM8960_IFACE1_WL_20BITS) << WM8960_IFACE1_WL_SHIFT) & WM8960_IFACE1_WL_MASK))
+        elif module == wm8960_module_DAC:
+            vol_l = self.read_reg(_WM8960_LDAC)
+            vol_r = self.read_reg(_WM8960_RDAC)
 
-        elif bits ==  24:
-            self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
-                (((WM8960_IFACE1_WL_24BITS) << WM8960_IFACE1_WL_SHIFT) & WM8960_IFACE1_WL_MASK))
+        elif module == wm8960_module_headphone:
+            vol_l = self.read_reg(_WM8960_LOUT1)
+            vol_r = self.read_reg(_WM8960_ROUT1)
 
-        elif bits ==  32:
-            self.WM8960_ModifyReg(WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
-                (((WM8960_IFACE1_WL_24BITS) << WM8960_IFACE1_WL_SHIFT) & WM8960_IFACE1_WL_MASK))
+        elif module == wm8960_module_line_out:
+            vol_l = self.read_reg(_WM8960_LINVOL)
+            vol_r = self.read_reg(_WM8960_RINVOL)
 
         else:
-            raise ValueError('Invalid Argument')
+            vol_l = vol_r = 0
 
+        return (vol_l & 0xFF, vol_r & 0xFF)
+
+    def volume(self, module, volume_l=None, volume_r=None):
+        if volume_l is None:
+            return self.get_volume(module)
+        else:
+            self.set_volume(module, volume_l, volume_r)
+
+    def set_mute(self, module, is_enabled):
+
+        if module == wm8960_module_ADC:
+            # Digital Mute
+            if is_enabled:
+                self.write_reg(_WM8960_LADC, 0x100)
+                self.write_reg(_WM8960_RADC, 0x100)
+            else:
+                self.write_reg(_WM8960_LADC, 0x1C3)
+                self.write_reg(_WM8960_RADC, 0x1C3)
+
+        elif module == wm8960_module_DAC:
+            # Digital mute
+            if is_enabled:
+                self.write_reg(_WM8960_LDAC, 0x100)
+                self.write_reg(_WM8960_RDAC, 0x100)
+            else:
+                self.write_reg(_WM8960_LDAC, 0x1FF)
+                self.write_reg(_WM8960_RDAC, 0x1FF)
+
+        elif module == wm8960_module_headphone:
+            # Analog mute
+            if is_enabled:
+                self.write_reg(_WM8960_LOUT1, 0x100)
+                self.write_reg(_WM8960_ROUT1, 0x100)
+            else:
+                self.write_reg(_WM8960_LOUT1, 0x16F)
+                self.write_reg(_WM8960_ROUT1, 0x16F)
+
+        elif module == wm8960_module_speaker:
+            if is_enabled:
+                self.write_reg(_WM8960_LOUT2, 0x100)
+                self.write_reg(_WM8960_ROUT2, 0x100)
+            else:
+                self.write_reg(_WM8960_LOUT2, 0x16F)
+                self.write_reg(_WM8960_ROUT2, 0x16F)
+
+        elif module == wm8960_module_line_out:
+            pass
+
+        else:
+            raise ValueError("Invalid module")
 
     # write a command and cache the result
-    def WM8960_WriteReg(self, reg, value):
+    def write_reg(self, reg, value):
 
-        self.value_buffer[0] = value & 0xff
         self.wm8960_reg[reg] = value
-        reg = (reg << 1) | ((value >> 8) & 0x01)
-        self.i2c.writeto_mem(self.i2c_address, reg, self.value_buffer)
+        self.value_buffer[0] = (reg << 1) | ((value >> 8) & 0x01)
+        self.value_buffer[1] = value & 0xFF
+        self.i2c.writeto(self.i2c_address, self.value_buffer)
 
     # read a value back from the register cache
-    def WM8960_ReadReg(self, reg):
+    def read_reg(self, reg):
 
-        if reg < WM8960_CACHEREGNUM:
+        if reg < _WM8960_CACHEREGNUM:
             return self.wm8960_reg[reg]
         else:
-            raise ValueError('Invalid register number %d' % reg)
+            raise ValueError("Invalid register number %d" % reg)
 
+    def modify_reg(self, reg, mask, val):
 
-    def WM8960_ModifyReg(reg, mask, val):
-
-        reg_val = self.WM8960_ReadReg(reg)
-        reg_val &= (~mask) & 0xffff
-        reg_val |= val
-        self.WM8960_WriteReg(reg, reg_val)
+        reg_val = self.read_reg(reg)
+        reg_val &= (~mask) & 0xFFFF
+        reg_val |= val & mask
+        self.write_reg(reg, reg_val)
