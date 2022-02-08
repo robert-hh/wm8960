@@ -72,6 +72,8 @@ _WM8960_CACHEREGNUM = const(56)
 
 # WM8960 CLOCK2 bits
 _WM8960_CLOCK2_BCLK_DIV_MASK = const(0x0F)
+_WM8960_CLOCK2_DCLK_DIV_MASK = const(0x1C0)
+_WM8960_CLOCK2_DCLK_DIV_SHIFT = const(0x06)
 
 # _WM8960_IFACE1 FORMAT bits
 _WM8960_IFACE1_FORMAT_MASK = const(0x03)
@@ -233,44 +235,56 @@ wm8960_bus_PCMB = const(3 | (1 << 4))  # PCM B mode
 wm8960_sysclk_source_mclk = const(0)  # sysclk source from external MCLK
 wm8960_sysclk_source_PLL = const(1)  # sysclk source from internal PLL
 
-_bit_clock_divider_dict = {
-    2: 0,
-    3: 1,
-    4: 2,
-    6: 3,
-    8: 4,
-    11: 5,
-    12: 6,
-    16: 7,
-    22: 8,
-    24: 9,
-    32: 10,
-    44: 11,
-    48: 12,
-}
-
-_dac_divider_dict = {
-    1.0 * 256: 0b000,
-    1.5 * 256: 0b001,
-    2 * 256: 0b010,
-    3 * 256: 0b011,
-    4 * 256: 0b100,
-    5.5 * 256: 0b101,
-    6 * 256: 0b110,
-}
-
-_audio_word_length_dict = {
-    16: 0b00,
-    20: 0b01,
-    24: 0b10,
-    32: 0b11,
-}
-
 
 class WM8960:
 
-    # register cache of 56 short integers
-    wm8960_reg = array.array("H", bytearray(56 * 2))
+    # register cache of 56 register. Since registers cannot be read back, they are
+    # kept in the table for modification
+    # fmt: off
+    wm8960_reg = [
+        0x0097, 0x0097, 0x0000, 0x0000, 0x0000, 0x0008, 0x0000,
+        0x000a, 0x01c0, 0x0000, 0x00ff, 0x00ff, 0x0000, 0x0000,
+        0x0000, 0x0000, 0x0000, 0x007b, 0x0100, 0x0032, 0x0000,
+        0x00c3, 0x00c3, 0x01c0, 0x0000, 0x0000, 0x0000, 0x0000,
+        0x0000, 0x0000, 0x0000, 0x0000, 0x0100, 0x0100, 0x0050,
+        0x0050, 0x0050, 0x0050, 0x0000, 0x0000, 0x0000, 0x0000,
+        0x0040, 0x0000, 0x0000, 0x0050, 0x0050, 0x0000, 0x0002,
+        0x0037, 0x004d, 0x0080, 0x0008, 0x0031, 0x0026, 0x00e9
+    ]
+    # ftm: on
+
+    _bit_clock_divider_table = {
+        2: 0,
+        3: 1,
+        4: 2,
+        6: 3,
+        8: 4,
+        11: 5,
+        12: 6,
+        16: 7,
+        22: 8,
+        24: 9,
+        32: 10,
+        44: 11,
+        48: 12,
+    }
+
+    _dac_divider_table = {
+        1.0 * 256: 0b000,
+        1.5 * 256: 0b001,
+        2 * 256: 0b010,
+        3 * 256: 0b011,
+        4 * 256: 0b100,
+        5.5 * 256: 0b101,
+        6 * 256: 0b110,
+    }
+
+    _audio_word_length_table = {
+        16: 0b00,
+        20: 0b01,
+        24: 0b10,
+        32: 0b11,
+    }
 
     def __init__(
         self,
@@ -344,6 +358,7 @@ class WM8960:
         self.set_right_input(right_input)
         # speaker power
         if enable_speaker:
+            self.set_speaker_clock(sysclk)
             self.set_module(wm8960_module_speaker, True)
 
         self.write_reg(_WM8960_ADDCTL1, 0x0C0)
@@ -428,11 +443,25 @@ class WM8960:
     def set_master_clock(self, sysclk, sample_rate, bit_width):
         bit_clock_divider = sysclk // (sample_rate * bit_width * 2)
         try:
-            reg_divider = _bit_clock_divider_dict[bit_clock_divider]
+            reg_divider = self._bit_clock_divider_table[bit_clock_divider]
         except:
             raise ValueError("Invalid ratio of sysclk sample rate and bits")
         # configure the master bit clock divider will be better
         self.modify_reg(_WM8960_CLOCK2, _WM8960_CLOCK2_BCLK_DIV_MASK, reg_divider)
+
+    def set_speaker_clock(self, sysclk):
+        speaker_divider_table = (1.5, 2, 3, 4, 6, 8, 12, 16)
+        for val in range(8):
+            divider = speaker_divider_table[val]
+            f = sysclk / divider
+            if (500_000 < f < 1_000_000):
+                break
+        else:
+            val = 7
+        self.modify_reg(
+            _WM8960_CLOCK2,
+            _WM8960_CLOCK2_DCLK_DIV_MASK,
+            val << _WM8960_CLOCK2_DCLK_DIV_SHIFT)
 
     def set_master_slave(self, master):
         if master:
@@ -675,8 +704,8 @@ class WM8960:
     def config_data_format(self, sysclk, sample_rate, bits):
         #  Compute sample rate divider, dac and adc are the same sample rate
         try:
-            divider = _dac_divider_dict[sysclk // sample_rate]
-            wl = _audio_word_length_dict[bits]
+            divider = self._dac_divider_table[sysclk // sample_rate]
+            wl = self._audio_word_length_table[bits]
         except:
             raise ValueError("Invalid ratio sysclk/sample_rate or invalid bit length")
 
