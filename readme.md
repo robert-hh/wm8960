@@ -23,19 +23,20 @@ The driver contains the WM8960 class and quite a few name definitions.
 
 ```
 wm8960=wm8960.WM8960(i2c, *,
-    sample_rate = 16000,
-    bits = 16,
-    route = wm8960_route_playback_record,
-    protocol = wm8960_bus_I2S,
-    master_slave = False,
-    enable_speaker = False,
-    left_input = wm8960_input_differential_mic_input3,
-    right_input = wm8960_input_differential_mic_input2,
-    play_source = wm8960_play_source_DAC,
-    master_clock_source = wm8960_sysclk_source_PLL,
-    master_clock_freq = None,
-    adc_sync = wm8960_sync_dac,
-    i2c_address = WM8960_I2C_ADDR
+    sample_rate=16000,
+    bits=16,
+    swap=wm8960_swap_none,
+    route=wm8960_route_playback_record,
+    enable_speaker=False,
+    left_input=wm8960_input_differential_mic_input3,
+    right_input=wm8960_input_differential_mic_input2,
+    play_source=wm8960_play_source_DAC,
+    master_clock_source=wm8960_sysclk_source_mclk,
+    master_clock_freq=None,
+    master_slave=False,
+    adc_sync=wm8960_sync_dac,
+    protocol=wm8960_bus_I2S,
+    i2c_address=WM8960_I2C_ADDR
 )
 ``` 
 
@@ -46,9 +47,8 @@ Only the first argument, i2c, is mandatory. All others are optional. Arguments:
 16000, 22050, 24000, 32000, 44100, 48000, 96000, 192000 and 384000. Note, that
 not every I2S hardware will support all values.
 - *bits* The number of bits per audio word. Acceptable value are 16, 20, 24, and 32.
+- *swap* Swap the left & right channel, if set. For a list of options, see the table below.
 - *route* Setting the audio path in the codec. For a list of options, see the table below.
-- *protocol* Setting the communication protocol. The default is I2S. For a list of options, see the table below.
-- *master_slave* Let the WM8960 act as Master of Slave device. The default setting is Slave. In slave mode, sample_rate and bits are controlled by the MCU.
 - *enable_speaker* Enable or disable the speaker port.
 - *left_input* Set the audio source for the left input channel. For a list of options, see the table below.
 - *right_input* Set the audio source for the right input channel.For a list of options, see the table below.
@@ -56,15 +56,25 @@ not every I2S hardware will support all values.
 - *master_clock_source* Control, whether the internal master clock called "sysclk" is directly taken from
 the MCLK input or derived from it using an internal PLL. It is usually not required to change that.
 - *master_clock_freq* Argument for telling the frequency to by used. If not set, default values are used.
+- *master_slave* Let the WM8960 act as Master of Slave device. The default setting is Slave. In slave mode, sample_rate and bits are controlled by the MCU.
 - *adc_sync* Tell which input is used for the ADC sync signal. The default is using the DACLRC pin.
+- *protocol* Setting the communication protocol. The default is I2S. For a list of options, see the table below.
 - *i2c_address* The I2C address of the WM8960. The default is 0x1a or 26.
 
-If master_clock_freq is not set the following default values are used:
+If master_clock_freq is not set, the following default values are used:
 
-- master_clock_source == wm8960_sysclk_source_PLL: 11.2896 MHz for sample rates of 44100, 22050 and 11015 Hz, 12.288 Mhz otherwise.
+- master_clock_source == wm8960_sysclk_source_PLL: 11.2896 MHz for sample rates of 44100, 22050 and 11015 Hz, and 12.288 Mhz for sample rates < 48000, otherwise sample_rate * 256.
 - master_clock_source == wm8960_sysclk_source_mclk: sample_rate * 256.
 
 ## Tables of parameter constants 
+**Swap Parameter**
+
+|Value|Name|
+|:---:|:-----|
+|0| wm8960_swap_none |
+|1| wm8960_swap_input|
+|2| wm8960_swap_output |
+
 **Route parameter:**
 
 |Value|Name|

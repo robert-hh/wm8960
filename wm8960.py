@@ -220,12 +220,17 @@ wm8960_speaker_right = const(8)  # wm8960 speaker right channel
 wm8960_sync_adc = const(0)  # Use ADCLRC pin for ADC sync
 wm8960_sync_dac = const(1)  # used DACLRC pin for ADC sync
 
-#  Protocol type
+# Protocol type
 wm8960_bus_I2S = const(2)  # I2S type
 wm8960_bus_left_justified = const(1)  # Left justified mode
 wm8960_bus_right_justified = const(0)  # Right justified mode
 wm8960_bus_PCMA = const(3)  # PCM A mode
 wm8960_bus_PCMB = const(3 | (1 << 4))  # PCM B mode
+
+# Channel swap
+wm8960_swap_none = const(0)
+wm8960_swap_input = const(1)
+wm8960_swap_output = const(2)
 
 # Sample Rate symbolic names dropped
 
@@ -291,16 +296,17 @@ class WM8960:
         i2c,
         sample_rate=16000,
         bits=16,
+        swap=0,
         route=wm8960_route_playback_record,
-        protocol=wm8960_bus_I2S,
-        master_slave=False,
         enable_speaker=False,
         left_input=wm8960_input_differential_mic_input3,
         right_input=wm8960_input_differential_mic_input2,
         play_source=wm8960_play_source_DAC,
-        master_clock_source=wm8960_sysclk_source_PLL,
+        master_clock_source=wm8960_sysclk_source_mclk,
         master_clock_freq=None,
+        master_slave=False,
         adc_sync=wm8960_sync_dac,
+        protocol=wm8960_bus_I2S,
         i2c_address=_WM8960_I2C_ADDR,
     ):
         self.i2c = i2c
@@ -313,6 +319,8 @@ class WM8960:
                 sysclk = 11289600
             else:
                 sysclk = 12288000
+            if sysclk < sample_rate * 256:
+                sysclk = sample_rate * 256
             if master_clock_freq is None:
                 master_clock_freq = sysclk
         else:  # master_clock_source == wm8960_sysclk_source_mclk
@@ -352,6 +360,21 @@ class WM8960:
             self.set_master_clock(sysclk, sample_rate, bits)
 
         self.set_master_slave(master_slave)
+
+        # swap channels
+        if swap & wm8960_swap_input:
+            self.modify_reg(
+                _WM8960_IFACE1,
+                _WM8960_IFACE1_ALRSWAP_MASK,
+                _WM8960_IFACE1 << _WM8960_IFACE1_ALRSWAP_SHIFT
+            )
+        if swap & wm8960_swap_output:
+            self.modify_reg(
+                _WM8960_IFACE1,
+                _WM8960_IFACE1_DLRSWAP_MASK,
+                _WM8960_IFACE1 << _MM8960_IFACE1_DLRSWAP_SHIFT
+            )
+
         # select left input
         self.set_left_input(left_input)
         # select right input
