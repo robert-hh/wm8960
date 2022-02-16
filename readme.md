@@ -233,6 +233,46 @@ disables the expansion.
 If set to True, a Mono mix is sent to the left and right output channel.  This
 is different from enabling module_mono_mix, which enables output 3.
 
+### alc_mode(channel, mode=alc_mode)
+
+Enables or disables ALC mode. Parameters are:  
+
+**channel** Enable and set the channel for ALC. The parameter values are:  
+
+  - alc_off:   Switch ALC off
+  - als_right:  Use the right input channel
+  - alc_left:   Use the left input channel
+  - alc_stereo: Use both input channels.  
+
+**mode** Set the ALC mode. Input values are  
+
+  - alc_mode:   act as ALC
+  - alc_limiter: act as limiter. 
+
+
+### alc_gain(target=-12, max_gain=30, min_gain=-17.25, noise_gate=-78)
+
+Set the target level, highest and lowest gain levels and the noise gate as dB level.
+Permitted ranges are:  
+
+- target: -22.5 to -1.5 dB
+- max_gain: -12 to 30 dB
+- min_gain: -17 to 25 dB
+- noise_gate: -78 to -30 dB
+
+Excess values are limited to the permitted ranges.  A value of -78 or less 
+for **noise_gate** disables the noise gate function.
+
+### alc_time(attack=24, decay=192, hold=0)
+
+Set the dynamic characteristic of ALC. The times are given as ms values. Permitted ranges are:
+
+- attack: 6 to 6140
+- decay: 24 to 24580
+- hold: 0 to 43000
+
+Excess values are limited within the permitted ranges.
+
 ### deinit()
 
 Disable all modules.

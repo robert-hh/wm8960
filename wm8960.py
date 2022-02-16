@@ -35,12 +35,12 @@ _WM8960_NOISEG = const(0x14)
 _WM8960_LADC = const(0x15)
 _WM8960_RADC = const(0x16)
 _WM8960_ADDCTL1 = const(0x17)
-_WM8960_ADDCTL2 = const(0x18)
+# _WM8960_ADDCTL2 = const(0x18)
 _WM8960_POWER1 = const(0x19)
 _WM8960_POWER2 = const(0x1A)
 _WM8960_ADDCTL3 = const(0x1B)
-_WM8960_APOP1 = const(0x1C)
-_WM8960_APOP2 = const(0x1D)
+# _WM8960_APOP1 = const(0x1C)
+# _WM8960_APOP2 = const(0x1D)
 _WM8960_LINPATH = const(0x20)
 _WM8960_RINPATH = const(0x21)
 _WM8960_LOUTMIX = const(0x22)
@@ -57,7 +57,7 @@ _WM8960_BYPASS2 = const(0x2E)
 _WM8960_POWER3 = const(0x2F)
 _WM8960_ADDCTL4 = const(0x30)
 _WM8960_CLASSD1 = const(0x31)
-_WM8960_CLASSD3 = const(0x33)
+# _WM8960_CLASSD3 = const(0x33)
 _WM8960_PLL1 = const(0x34)
 _WM8960_PLL2 = const(0x35)
 _WM8960_PLL3 = const(0x36)
@@ -145,12 +145,29 @@ _WM8960_POWER3_LOMIX_SHIFT = const(0x03)
 _WM8960_POWER3_ROMIX_MASK = const(0x04)
 _WM8960_POWER3_ROMIX_SHIFT = const(0x02)
 
-# _WM8960_DACCTL1 and 2
+# _WM8960_DACCTL1 .. 3
 _WM8960_DACCTL1_MONOMIX_MASK = const(0x10)
 _WM8960_DACCTL1_MONOMIX_SHIFT = const(0x4)
 _WM8960_DACCTL1_DACMU_MASK = const(0x08)
 _WM8960_DACCTL2_DACSMM_MASK = const(0x08)
 _WM8960_DACCTL2_DACMR_MASK = const(0x04)
+_WM8960_DACCTL3_ALCSR_MASK = const(0x07)
+
+# _WM8060_ALC1 .. 3
+_WM8960_ALC_CHANNEL_MASK = const(0x180)
+_WM8960_ALC_CHANNEL_SHIFT = const(0x7)
+_WM8960_ALC_MODE_MASK = const(0x100)
+_WM8960_ALC_MODE_SHIFT = const(0x8)
+_WM8960_ALC_GAIN_MASK = const(0x70)
+_WM8960_ALC_GAIN_SHIFT = const(0x4)
+_WM8960_ALC_TARGET_MASK = const(0x0F)
+_WM8960_ALC_ATTACK_MASK = const(0x0F)
+_WM8960_ALC_DECAY_MASK = const(0xF0)
+_WM8960_ALC_DECAY_SHIFT = const(4)
+_WM8960_ALC_HOLD_MASK = const(0xF)
+
+# _WM8960_NOISEG
+_WM8960_NOISEG_LEVEL_SHIFT = const(3)
 
 _WM8960_I2C_ADDR = const(0x1A)
 
@@ -173,7 +190,7 @@ module_line_in = const(6)  # Analog in PGA
 module_line_out = const(7)  # Line out module
 module_speaker = const(8)  # Speaker module
 module_omix = const(9)  # Output mixer
-module_mono = const(10)  # Mono mix
+module_mono_out = const(10)  # Mono mix
 
 # Route
 route_bypass = const(0)  # LINEIN->Headphone.
@@ -188,17 +205,6 @@ input_mic2 = const(2)  # Input as diff. mic, use L/RINPUT1 and L/RINPUT2
 input_mic3 = const(3)  # Input as diff. mic, use L/RINPUT1 and L/RINPUT3
 input_line2 = const(4)  # Input as line input, only use L/RINPUT2
 input_line3 = const(5)  # Input as line input, only use L/RINPUT3
-
-# Play source
-# source_PGA = const(1)  # wm8960 play source PGA
-# source_input = const(2)  # wm8960 play source Input
-# source_DAC = const(4)  # wm8960 play source DAC
-
-# Play Channel
-# play_headphone_left = const(1)  # wm8960 headphone left channel
-# play_headphone_right = const(2)  # wm8960 headphone right channel
-# play_speaker_left = const(4)  # wm8960 speaker left channel
-# play_speaker_right = const(8)  # wm8960 speaker right channel
 
 # ADC sync input
 sync_adc = const(0)  # Use ADCLRC pin for ADC sync
@@ -220,9 +226,13 @@ swap_output = const(2)
 mute_fast = const(0)
 mute_slow = const(1)
 
-# Sample Rate symbolic names dropped
-
-# Bit Width symbolic names dropped
+# ALC settings
+alc_off = const(0)
+alc_right = const(1)
+alc_left = const(2)
+alc_stereo = const(3)
+alc_mode = const(0)  # ALC mode
+alc_limiter = const(1)  # Limiter mode
 
 # Clock Source
 sysclk_mclk = const(0)  # sysclk source from external MCLK
@@ -277,6 +287,18 @@ class WM8960:
         20: 0b01,
         24: 0b10,
         32: 0b11,
+    }
+
+    _alc_sample_rate_table = {
+        48000: 0,
+        44100: 0,
+        32000: 1,
+        24000: 2,
+        22050: 2,
+        16000: 3,
+        12000: 4,
+        11025: 4,
+        8000: 5
     }
 
     def __init__(
@@ -447,7 +469,7 @@ class WM8960:
         self.modify_reg(_WM8960_CLOCK1, 7, ((0 if sysclk_div == 1 else sysclk_div) << 1) | 1)
 
     def set_master_clock(self, sysclk, sample_rate, bit_width):
-        bit_clock_divider = sysclk // (sample_rate * bit_width * 2)
+        bit_clock_divider = (sysclk * 2) // (sample_rate * bit_width * 2)
         try:
             reg_divider = self._bit_clock_divider_table[bit_clock_divider]
         except:
@@ -829,6 +851,69 @@ class WM8960:
         enable = 1 if enable else 0
         self.modify_reg(
             _WM8960_DACCTL1, _WM8960_DACCTL1_MONOMIX_MASK, enable << _WM8960_DACCTL1_MONOMIX_SHIFT
+        )
+
+    def alc_mode(self, channel, mode=alc_mode):
+        if mode != alc_mode:
+            mode = alc_limiter
+        channel &= 3
+        self.modify_reg(_WM8960_ALC1, _WM8960_ALC_CHANNEL_MASK, channel << _WM8960_ALC_CHANNEL_SHIFT)
+        self.modify_reg(_WM8960_ALC3, _WM8960_ALC_MODE_MASK, mode << _WM8960_ALC_MODE_SHIFT)
+        try:
+            rate = _alc_sample_rate_table[self.sample_rate]
+        except:
+            rate = 0
+        self.modify_reg(_WM8960_ADDCTL3, _WM8960_DACCTL3_ALCSR_MASK, rate)
+
+    def alc_gain(self, target=-12, max_gain=30, min_gain=-17.25, noise_gate=-78):
+
+        def limit(value, minval, maxval):
+            value = int(value)
+            if value < minval:
+                value = minval
+            if value > maxval:
+                value = maxval
+            return value
+
+        target = limit((16 + (target * 2) // 3), 0, 15)
+        max_gain = limit((max_gain + 12) // 6, 0, 7)
+        min_gain = limit((min_gain * 4 + 69) // 24, 0, 7)
+        noise_gate = limit((noise_gate * 2 + 153) // 3, -1, 31)
+        self.modify_reg(
+            _WM8960_ALC1,
+            _WM8960_ALC_GAIN_MASK | _WM8960_ALC_TARGET_MASK,
+            (max_gain << _WM8960_ALC_GAIN_SHIFT) | target
+        )
+        self.modify_reg(
+            _WM8960_ALC2,
+            _WM8960_ALC_GAIN_MASK,
+            (min_gain << _WM8960_ALC_GAIN_SHIFT)
+        )
+        if noise_gate >= 0:
+           self.write_reg(_WM8960_NOISEG, noise_gate << _WM8960_NOISEG_LEVEL_SHIFT | 1)
+        else:
+           self.write_reg(_WM8960_NOISEG, 0)
+
+    def alc_time(self, attack=24, decay=192, hold=0):
+
+        def logb(value, limit):
+            value = int(value)
+            lb = 0
+            while value > 1:
+                value >>= 1
+                lb += 1
+            if lb > limit:
+                lb = limit
+            return lb
+
+        attack = logb(attack / 6, 7)
+        decay = logb(decay / 24, 7)
+        hold = logb((hold * 3) / 8, 15)
+        self.modify_reg(_WM8960_ALC2, _WM8960_ALC_HOLD_MASK, hold)
+        self.modify_reg(
+            _WM8960_ALC3,
+            _WM8960_ALC_DECAY_MASK | _WM8960_ALC_ATTACK_MASK,
+            (decay << _WM8960_ALC_DECAY_SHIFT) | attack
         )
 
     # write a command and cache the result
