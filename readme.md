@@ -25,15 +25,15 @@ The driver contains the WM8960 class and quite a few name definitions.
 wm8960=wm8960.WM8960(i2c, *,
     sample_rate=16000,
     bits=16,
-    swap=wm8960_swap_none,
-    route=wm8960_route_playback_record,
-    left_input=wm8960_mic_input3,
-    right_input=wm8960_mic_input2,
-    sysclk_source=wm8960_sysclk_mclk,
+    swap=swap_none,
+    route=route_playback_record,
+    left_input=mic_input3,
+    right_input=input_mic2,
+    sysclk_source=sysclk_mclk,
     mclk_freq=None,
     primary=False,
-    adc_sync=wm8960_sync_dac,
-    protocol=wm8960_bus_I2S,
+    adc_sync=sync_dac,
+    protocol=bus_I2S,
     i2c_address=WM8960_I2C_ADDR
 )
 ```
@@ -59,8 +59,8 @@ the MCLK input or derived from it using an internal PLL. It is usually not requi
 
 If mclk_freq is not set, the following default values are assumed:
 
-- sysclk_source == wm8960_sysclk_PLL: 11.2896 MHz for sample rates of 44100, 22050 and 11015 Hz, and 12.288 Mhz for sample rates < 48000, otherwise sample_rate * 256.
-- sysclk_source == wm8960_sysclk_mclk: sample_rate * 256.
+- sysclk_source == sysclk_PLL: 11.2896 MHz for sample rates of 44100, 22050 and 11015 Hz, and 12.288 Mhz for sample rates < 48000, otherwise sample_rate * 256.
+- sysclk_source == sysclk_mclk: sample_rate * 256.
 
 If the MCLK signal is applied using e.g. a separate oszillator, it must be specified for proper operation.
 
@@ -69,86 +69,86 @@ If the MCLK signal is applied using e.g. a separate oszillator, it must be speci
 
 |Value|Name|
 |:---:|:-----|
-|0| wm8960_swap_none |
-|1| wm8960_swap_input|
-|2| wm8960_swap_output |
+|0| swap_none |
+|1| swap_input|
+|2| swap_output |
 
 **Route parameter:**
 
 |Value|Name|
 |:---:|:------|
-0| wm8960_route_bypass |
-1| wm8960_route_playback |
-2| wm8960_route_playback_record |
-5| wm8960_route_record |
+0| route_bypass |
+1| route_playback |
+2| route_playback_record |
+5| route_record |
 
 **Protocol Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|2| wm8960_bus_I2S |
-|1| wm8960_bus_left_justified |
-|0| wm8960_bus_right_justified|
-|3| wm8960_bus_PCMA |
-|19| wm8960_bus_PCMB |
+|2| bus_I2S |
+|1| bus_left_justified |
+|0| bus_right_justified|
+|3| bus_PCMA |
+|19| bus_PCMB |
 
 **Input Source Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| wm8960_closed |
-|1| wm8960_mic_input1 |
-|2| wm8960_mic_input2|
-|3| wm8960_mic_input3|
-|4| wm8960_line_input2_ |
-|5| wm8960_line_input3 |
+|0| input_closed |
+|1| input_mic1 |
+|2| input_mic2|
+|3| input_mic3|
+|4| input_line2_ |
+|5| input_line3 |
 
 **Route Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| wm8960_route_bypass |
-|1| wm8960_route_playback |
-|2| wm8960_route_playback_record|
-|5| wm8960_route_record |
+|0| route_bypass |
+|1| route_playback |
+|2| route_playback_record|
+|5| route_record |
 
 **Master Clock Source Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| wm8960_sysclk_mclk |
-|1| wm8960_sysclk_PLL|
+|0| sysclk_mclk |
+|1| sysclk_PLL|
 
 **Module Names**
 
 |Value|Name|
 |:---:|:-----|
-|0| wm8960_module_ADC |
-|1| wm8960_module_DAC |
-|2| wm8960_module_VREF |
-|3| wm8960_module_headphone |
-|4| wm8960_module_mic_bias |
-|5| wm8960_module_mic |
-|6| wm8960_module_line_in |
-|7| wm8960_module_line_out|
-|8| wm8960_module_speaker|
-|9| wm8960_module_omix |
+|0| module_ADC |
+|1| module_DAC |
+|2| module_VREF |
+|3| module_headphone |
+|4| module_mic_bias |
+|5| module_mic |
+|6| module_line_in |
+|7| module_line_out|
+|8| module_speaker|
+|9| module_omix |
 
 **Play Channel Names**
 
 |Value|Name|
 |:---:|:-----|
-|1| wm8960_headphone_left |
-|2| wm8960_headphone_right|
-|4| wm8960_speaker_left |
-|8| wm8960_speaker_right |
+|1| play_headphone_left |
+|2| play_headphone_right|
+|4| play_speaker_left |
+|8| play_speaker_right |
 
 **adc_sync Parameters**
 
 |Value|Name|
 |:---:|:-----|
-|0| wm8960_sync_adc|
-|1| wm8960_sync_dac|
+|0| sync_adc|
+|1| sync_dac|
 
 
 ## Methods
@@ -175,11 +175,11 @@ For a list of suitable modules and highest values, see the table below.
 
 |Value Range|Name|
 |:---:|:-----|
-|0-255| wm8960_module_ADC |
-|0-255| wm8960_module_DAC |
-|0-127| wm8960_module_headphone |
-|0-63| wm8960_module_line_in |
-|0-127| wm8960_module_speaker |
+|0-255| module_ADC |
+|0-255| module_DAC |
+|0-127| module_headphone |
+|0-63| module_line_in |
+|0-127| module_speaker |
 
 
 ### value = get_volume(module)
@@ -249,18 +249,18 @@ Record with a Sparkfun WM8960 breakout board with Teensy in secondary mode(defau
 # The breakout board uses a fixed 24MHz MCLK. Therefore the internal
 # PLL must be used as sysclk, which is the master audio clock.
 # The Sparkfun board has the WS pins for RX and TX connected on the
-# board. Therefore adc_sync must be set to wm8960_sync_adc, to configure
+# board. Therefore adc_sync must be set to sync_adc, to configure
 # it's ADCLRC pin as input.
 #
 from machine import Pin, I2C
 import wm8960
 i2c = I2C(0)
 wm=wm8960.WM8960(i2c, sample_rate=16_000,
-    adc_sync=wm8960.wm8960_sync_adc,
-    sysclk_source=wm8960.wm8960_sysclk_PLL,
+    adc_sync=wm8960.sync_adc,
+    sysclk_source=wm8960.sysclk_PLL,
     mclk_freq=24_000_000,
-    left_input=wm8960.wm8960_mic_input1,
-    right_input=wm8960.wm8960_closed)
+    left_input=wm8960.input_mic1,
+    right_input=wm8960.input_closed)
 ```
 
 Play with a Sparkfun WM8960 breakout board with Teensy in secondary mode(default)::
@@ -268,15 +268,15 @@ Play with a Sparkfun WM8960 breakout board with Teensy in secondary mode(default
 # The breakout board uses a fixed 24MHz MCLK. Therefore the internal
 # PLL must be used as sysclk, which is the master audio clock.
 # The Sparkfun board has the WS pins for RX and TX connected on the
-# board. Therefore adc_sync must be set to wm8960_sync_adc, to configure
+# board. Therefore adc_sync must be set to sync_adc, to configure
 # it's ADCLRC pin as input.
 
 from machine import I2C
 i2c=I2C(0)
 import wm8960
 wm=wm8960.WM8960(i2c, sample_rate=44_100,
-    adc_sync=wm8960.wm8960_sync_adc,
-    sysclk_source=wm8960.wm8960_sysclk_PLL,
+    adc_sync=wm8960.sync_adc,
+    sysclk_source=wm8960.sysclk_PLL,
     mclk_freq=24_000_000)
-wm.set_volume(wm8960.wm8960_module_headphone, 100)
+wm.set_volume(wm8960.module_headphone, 100)
 ```
