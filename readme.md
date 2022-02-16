@@ -195,7 +195,7 @@ for the left channel, the second for the right channel.
 For a list of suitable modules and highest values, see the table below.
 
 
-### mute(module, True|False)
+### set_mute(module, True|False)
 
 Mute or unmute a certain module. The Module names are the same as for set_volume().
 
@@ -207,8 +207,15 @@ Set the audio data route. For the parameter value/names, look at the table above
 
 ### set_module(module, True|False)
 
-Enable or disable a module. For the list of module names, , look at the table above.
+Enable or disable a module. For the list of module names, look at the table above.
 
+### enable_module(module, True|False)
+
+Enable a module. For the list of module names, look at the table above.
+
+### disable_module(module, True|False)
+
+Disable a module. For the list of module names, look at the table above.
 
 ### deinit()
 

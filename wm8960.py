@@ -571,6 +571,12 @@ class WM8960:
         else:
             raise ValueError("Invalid module")
 
+    def enable_module(self, module):
+        self.set_module(module, True)
+
+    def disable_module(self, module):
+        self.set_module(module, False)
+
     def set_data_route(self, route):
         if route == route_bypass:
             # Bypass means from line-in to HP
