@@ -97,9 +97,6 @@ _WM8960_IFACE1_DSP_MODEB = const(0x01)
 
 # _WM8960_IFACE1 DLRSWAP bit
 _WM8960_IFACE1_DLRSWAP_MASK = const(0x20)
-_WM8960_IFACE1_DLRSWAP_SHIFT = const(0x05)
-_WM8960_IFACE1_DACCH_NORMAL = const(0x00)
-_WM8960_IFACE1_DACCH_SWAP = const(0x01)
 
 # _WM8960_IFACE1 MS bit
 _WM8960_IFACE1_MS_MASK = const(0x40)
@@ -169,6 +166,14 @@ _WM8960_POWER3_LOMIX_SHIFT = const(0x03)
 _WM8960_POWER3_ROMIX_MASK = const(0x04)
 _WM8960_POWER3_ROMIX_SHIFT = const(0x02)
 
+# _WM8960_DACCTL1 and 2
+_WM8960_DACCTL1_MONOMIX_MASK = const(0x10)
+_WM8960_DACCTL1_MONOMIX_SHIFT = const(0x4)
+_WM8960_DACCTL1_DACMU_MASK = const(0x08)
+_WM8960_DACCTL2_DACSMM_MASK = const(0x08)
+_WM8960_DACCTL2_DACMR_MASK = const(0x04)
+
+
 _WM8960_I2C_ADDR = const(0x1A)
 
 # WM8960 maximum volume values
@@ -190,6 +195,7 @@ module_line_in = const(6)  # Analog in PGA
 module_line_out = const(7)  # Line out module
 module_speaker = const(8)  # Speaker module
 module_omix = const(9)  # Output mixer
+module_mono = const(10)  # Mono mix
 
 # Route
 route_bypass = const(0)  # LINEIN->Headphone.
@@ -231,6 +237,10 @@ bus_PCMB = const(3 | (1 << 4))  # PCM B mode
 swap_none = const(0)
 swap_input = const(1)
 swap_output = const(2)
+
+# Mute settings
+mute_fast = const(0)
+mute_slow = const(1)
 
 # Sample Rate symbolic names dropped
 
@@ -310,6 +320,7 @@ class WM8960:
         self.i2c = i2c
         self.i2c_address = i2c_address
         self.value_buffer = bytearray(2)
+        self.sample_rate = sample_rate
 
         # check parameter consistency and set the sysclk value
         if sysclk_source == sysclk_PLL:
@@ -406,13 +417,12 @@ class WM8960:
         #
         # Unmute DAC.
         self.write_reg(_WM8960_DACCTL1, 0x0000)
+        #
+        # Input PGA volume 0 dB
         self.write_reg(_WM8960_LINVOL, 0x117)
         self.write_reg(_WM8960_RINVOL, 0x117)
 
         self.config_data_format(sysclk, sample_rate, bits)
-
-        # Add shorter external names
-        self.mute = self.set_mute
 
     def deinit(self):
 
@@ -496,6 +506,8 @@ class WM8960:
 
     def set_module(self, module, is_enabled):
 
+        is_enabled = 1 if is_enabled else 0
+
         if module == module_ADC:
 
             self.modify_reg(
@@ -568,6 +580,13 @@ class WM8960:
             self.modify_reg(
                 _WM8960_POWER3, _WM8960_POWER3_ROMIX_MASK, (is_enabled << _WM8960_POWER3_ROMIX_SHIFT)
             )
+
+        elif module == module_mono_out:
+
+            self.write_reg(_WM8960_MONOMIX1, (is_enabled << 7))
+            self.write_reg(_WM8960_MONOMIX2, (is_enabled << 7))
+            self.write_reg(_WM8960_MONO, (is_enabled << 6))
+
         else:
             raise ValueError("Invalid module")
 
@@ -813,48 +832,26 @@ class WM8960:
         else:
             self.set_volume(module, volume_l, volume_r)
 
-    def set_mute(self, module, is_enabled):
+    def mute(self, enable, soft=True, ramp=mute_fast):
+        enable = _WM8960_DACCTL1_DACMU_MASK if enable else 0
+        soft = _WM8960_DACCTL2_DACSMM_MASK if soft else 0
+        ramp = _WM8960_DACCTL2_DACMR_MASK if ramp == mute_slow else 0
+        self.modify_reg(_WM8960_DACCTL1, _WM8960_DACCTL1_DACMU_MASK, enable)
+        self.modify_reg(
+            _WM8960_DACCTL2, _WM8960_DACCTL2_DACSMM_MASK | _WM8960_DACCTL2_DACMR_MASK, soft | ramp
+        )
 
-        if module == module_ADC:
-            # Digital Mute
-            if is_enabled:
-                self.write_reg(_WM8960_LADC, 0x100)
-                self.write_reg(_WM8960_RADC, 0x100)
-            else:
-                self.write_reg(_WM8960_LADC, 0x1C3)
-                self.write_reg(_WM8960_RADC, 0x1C3)
+    def expand_3d(self, depth=0):
+        if depth > 15:
+            depth = 15
+        cutoff = 0 if self.sample_rate >= 32000 else 0b1100000
+        self.write_reg(_WM8960_3D, cutoff | depth << 1 | (1 if depth > 0 else 0))
 
-        elif module == module_DAC:
-            # Digital mute
-            if is_enabled:
-                self.write_reg(_WM8960_LDAC, 0x100)
-                self.write_reg(_WM8960_RDAC, 0x100)
-            else:
-                self.write_reg(_WM8960_LDAC, 0x1FF)
-                self.write_reg(_WM8960_RDAC, 0x1FF)
-
-        elif module == module_headphone:
-            # Analog mute
-            if is_enabled:
-                self.write_reg(_WM8960_LOUT1, 0x100)
-                self.write_reg(_WM8960_ROUT1, 0x100)
-            else:
-                self.write_reg(_WM8960_LOUT1, 0x16F)
-                self.write_reg(_WM8960_ROUT1, 0x16F)
-
-        elif module == module_speaker:
-            if is_enabled:
-                self.write_reg(_WM8960_LOUT2, 0x100)
-                self.write_reg(_WM8960_ROUT2, 0x100)
-            else:
-                self.write_reg(_WM8960_LOUT2, 0x16F)
-                self.write_reg(_WM8960_ROUT2, 0x16F)
-
-        elif module == module_line_out:
-            pass
-
-        else:
-            raise ValueError("Invalid module")
+    def mono(self, enable):
+        enable = 1 if enable else 0
+        self.modify_reg(
+            _WM8960_DACCTL1, _WM8960_DACCTL1_MONOMIX_MASK, enable << _WM8960_DACCTL1_MONOMIX_SHIFT
+        )
 
     # write a command and cache the result
     def write_reg(self, reg, value):

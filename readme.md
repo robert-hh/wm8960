@@ -133,6 +133,7 @@ If the MCLK signal is applied using e.g. a separate oszillator, it must be speci
 |7| module_line_out|
 |8| module_speaker|
 |9| module_omix |
+|10| module_mono_out |
 
 **Play Channel Names**
 
@@ -195,9 +196,12 @@ for the left channel, the second for the right channel.
 For a list of suitable modules and highest values, see the table below.
 
 
-### set_mute(module, True|False)
+### mute(module, enable, soft=True, ramp=wm8960.mute_fast)
 
-Mute or unmute a certain module. The Module names are the same as for set_volume().
+Mute or unmute the output. If **enable** is True, the output is muted, if False
+it is unmuted. 
+If **soft** is True, mute will happen as a soft transition. The time for
+the transistion is defined by **ramp**, which is either mute_fast or mute_slow.
 
 
 ### set_data_route(route)
@@ -208,6 +212,8 @@ Set the audio data route. For the parameter value/names, look at the table above
 ### set_module(module, True|False)
 
 Enable or disable a module. For the list of module names, look at the table above.
+Note that enabling module_mono_out is different from the mono() method. The first
+enables output 3, while the mono method sends a mono mix to the left and right output.
 
 ### enable_module(module, True|False)
 
@@ -216,6 +222,16 @@ Enable a module. For the list of module names, look at the table above.
 ### disable_module(module, True|False)
 
 Disable a module. For the list of module names, look at the table above.
+
+### expand_3d(level)
+
+Enable Stereo 3d exansion. Level is a number between 0 and 15. A value of 0
+disables the expansion.
+
+### mono(True | False)
+
+If set to True, a Mono mix is sent to the left and right output channel.  This
+is different from enabling module_mono_mix, which enables output 3.
 
 ### deinit()
 
