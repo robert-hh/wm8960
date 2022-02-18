@@ -238,10 +238,11 @@ alc_limiter = const(1)  # Limiter mode
 sysclk_mclk = const(0)  # sysclk source from external MCLK
 sysclk_PLL = const(1)  # sysclk source from internal PLL
 
+
+# fmt: off
 class Regs:
     # register cache of 56 register. Since registers cannot be read back, they are
     # kept in the table for modification
-    # fmt: off
     cache = [
         0x0097, 0x0097, 0x0000, 0x0000, 0x0000, 0x0008, 0x0000,
         0x000a, 0x01c0, 0x0000, 0x00ff, 0x00ff, 0x0000, 0x0000,
@@ -252,7 +253,6 @@ class Regs:
         0x0040, 0x0000, 0x0000, 0x0050, 0x0050, 0x0000, 0x0002,
         0x0037, 0x004d, 0x0080, 0x0008, 0x0031, 0x0026, 0x00e9
     ]
-    # ftm: on
 
     def __init__(self, i2c, i2c_address):
         self.value_buffer = bytearray(2)
@@ -266,7 +266,7 @@ class Regs:
         if (type(value) is tuple):
             if len(value) >= 2:
                 reg_val = self.__getitem__(reg)
-                val = (reg_val & (~value[0]) & 0xFFFF) | (value[1] & value[0])
+                val = (reg_val & (~value[0]) & 0xFFFF) | value[1]
             else:
                 val = value[0]
         else:
@@ -275,7 +275,6 @@ class Regs:
         self.value_buffer[0] = (reg << 1) | ((val >> 8) & 0x01)
         self.value_buffer[1] = val & 0xFF
         self.i2c.writeto(self.i2c_address, self.value_buffer)
-
 
 class WM8960:
 
@@ -526,16 +525,16 @@ class WM8960:
 
             regs[_WM8960_POWER1] = (
                 _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_ADCR_MASK,
-                (is_enabled << _WM8960_POWER1_ADCL_SHIFT) |
-                (is_enabled << _WM8960_POWER1_ADCR_SHIFT),
+                (is_enabled << _WM8960_POWER1_ADCL_SHIFT)
+                | (is_enabled << _WM8960_POWER1_ADCR_SHIFT),
             )
 
         elif module == module_DAC:
 
             regs[_WM8960_POWER2] = (
                 _WM8960_POWER2_DACL_MASK | _WM8960_POWER2_DACR_MASK,
-                (is_enabled << _WM8960_POWER2_DACL_SHIFT) |
-                (is_enabled << _WM8960_POWER2_DACR_SHIFT),
+                (is_enabled << _WM8960_POWER2_DACL_SHIFT)
+                | (is_enabled << _WM8960_POWER2_DACR_SHIFT),
             )
 
         elif module == module_VREF:
@@ -549,21 +548,21 @@ class WM8960:
 
             regs[_WM8960_POWER1] = (
                 _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_AINR_MASK,
-                (is_enabled << _WM8960_POWER1_AINL_SHIFT) |
-                (is_enabled << _WM8960_POWER1_AINR_SHIFT),
+                (is_enabled << _WM8960_POWER1_AINL_SHIFT)
+                | (is_enabled << _WM8960_POWER1_AINR_SHIFT),
             )
             regs[_WM8960_POWER3] = (
                 _WM8960_POWER3_LMIC_MASK | _WM8960_POWER3_RMIC_MASK,
-                (is_enabled << _WM8960_POWER3_LMIC_SHIFT) |
-                (is_enabled << _WM8960_POWER3_RMIC_SHIFT),
+                (is_enabled << _WM8960_POWER3_LMIC_SHIFT)
+                | (is_enabled << _WM8960_POWER3_RMIC_SHIFT),
             )
 
         elif module == module_line_out:
 
             regs[_WM8960_POWER2] = (
                 _WM8960_POWER2_LOUT1_MASK | _WM8960_POWER2_ROUT1_MASK,
-                (is_enabled << _WM8960_POWER2_LOUT1_SHIFT) |
-                (is_enabled << _WM8960_POWER2_ROUT1_SHIFT),
+                (is_enabled << _WM8960_POWER2_LOUT1_SHIFT)
+                | (is_enabled << _WM8960_POWER2_ROUT1_SHIFT),
             )
 
         elif module == module_mic_bias:
@@ -577,8 +576,8 @@ class WM8960:
 
             regs[_WM8960_POWER2] = (
                 _WM8960_POWER2_SPKL_MASK | _WM8960_POWER2_SPKR_MASK,
-                (is_enabled << _WM8960_POWER2_SPKL_SHIFT) |
-                (is_enabled << _WM8960_POWER2_SPKR_SHIFT),
+                (is_enabled << _WM8960_POWER2_SPKL_SHIFT)
+                | (is_enabled << _WM8960_POWER2_SPKR_SHIFT),
             )
             regs[_WM8960_CLASSD1] = 0xF7
 
@@ -586,8 +585,8 @@ class WM8960:
 
             regs[_WM8960_POWER3] = (
                 _WM8960_POWER3_LOMIX_MASK | _WM8960_POWER3_ROMIX_MASK,
-                (is_enabled << _WM8960_POWER3_LOMIX_SHIFT) |
-                (is_enabled << _WM8960_POWER3_ROMIX_SHIFT),
+                (is_enabled << _WM8960_POWER3_LOMIX_SHIFT)
+                | (is_enabled << _WM8960_POWER3_ROMIX_SHIFT),
             )
 
         elif module == module_mono_out:
@@ -657,35 +656,34 @@ class WM8960:
         elif input == input_mic1:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
             regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+                0,
+                _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK,
             )
             regs[_WM8960_LINPATH] = 0x138
             regs[_WM8960_LINVOL] = 0x117
 
         elif input == input_mic2:
             regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+                0,
+                _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK,
             )
             regs[_WM8960_LINPATH] = 0x178
             regs[_WM8960_LINVOL] = 0x117
 
         elif input == input_mic3:
             regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+                0,
+                _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK,
             )
             regs[_WM8960_LINPATH] = 0x1B8
             regs[_WM8960_LINVOL] = 0x117
 
         elif input == input_line2:
-            regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
-            )
+            regs[_WM8960_POWER1] = (0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK)
             regs[_WM8960_INBMIX1] = (0, 0xE)
 
         elif input == input_line3:
-            regs[_WM8960_POWER1] = (
-                0,  _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
-            )
+            regs[_WM8960_POWER1] = (0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK)
             regs[_WM8960_INBMIX1] = (0, 0x70)
 
         else:
@@ -701,35 +699,34 @@ class WM8960:
         elif input == input_mic1:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
             regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+                0,
+                _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK,
             )
             regs[_WM8960_RINPATH] = 0x138
             regs[_WM8960_RINVOL] = 0x117
 
         elif input == input_mic2:
             regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+                0,
+                _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK,
             )
             regs[_WM8960_RINPATH] = 0x178
             regs[_WM8960_RINVOL] = 0x117
 
         elif input == input_mic3:
             regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+                0,
+                _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK,
             )
             regs[_WM8960_RINPATH] = 0x1B8
             regs[_WM8960_RINVOL] = 0x117
 
         elif input == input_line2:
-            regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
-            )
+            regs[_WM8960_POWER1] = (0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK)
             regs[_WM8960_INBMIX2] = (0, 0xE)
 
         elif input == input_line3:
-            regs[_WM8960_POWER1] = (
-                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
-            )
+            regs[_WM8960_POWER1] = (0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK)
             regs[_WM8960_INBMIX2] = (0, 0x70)
 
         else:
@@ -904,3 +901,4 @@ class WM8960:
             _WM8960_ALC_DECAY_MASK | _WM8960_ALC_ATTACK_MASK,
             (decay << _WM8960_ALC_DECAY_SHIFT) | attack,
         )
+# ftm: on
