@@ -652,46 +652,41 @@ class WM8960:
         regs = self.regs
         if input == input_closed:
             # Disable the input
-            regs[_WM8960_POWER1] = (_WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK)
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (_WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK, 0)
 
         elif input == input_mic1:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+            )
             regs[_WM8960_LINPATH] = 0x138
             regs[_WM8960_LINVOL] = 0x117
 
         elif input == input_mic2:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+            )
             regs[_WM8960_LINPATH] = 0x178
             regs[_WM8960_LINVOL] = 0x117
 
         elif input == input_mic3:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK | _WM8960_POWER1_MICB_MASK
+            )
             regs[_WM8960_LINPATH] = 0x1B8
             regs[_WM8960_LINVOL] = 0x117
 
         elif input == input_line2:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
-            regs[_WM8960_POWER1] = val
-            val = regs[_WM8960_INBMIX1]
-            val |= 0xE
-            regs[_WM8960_INBMIX1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
+            )
+            regs[_WM8960_INBMIX1] = (0, 0xE)
 
         elif input == input_line3:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
-            regs[_WM8960_POWER1] = val
-            val = regs[_WM8960_INBMIX1]
-            val |= 0x70
-            regs[_WM8960_INBMIX1] = val
+            regs[_WM8960_POWER1] = (
+                0,  _WM8960_POWER1_AINL_MASK | _WM8960_POWER1_ADCL_MASK
+            )
+            regs[_WM8960_INBMIX1] = (0, 0x70)
 
         else:
             raise ValueError("Invalid input name")
@@ -701,47 +696,41 @@ class WM8960:
         regs = self.regs
         if input == input_closed:
             # Disable the input
-            val = regs[_WM8960_POWER1]
-            val &= ~(_WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK)
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (_WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK, 0)
 
         elif input == input_mic1:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+            )
             regs[_WM8960_RINPATH] = 0x138
             regs[_WM8960_RINVOL] = 0x117
 
         elif input == input_mic2:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+            )
             regs[_WM8960_RINPATH] = 0x178
             regs[_WM8960_RINVOL] = 0x117
 
         elif input == input_mic3:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
-            regs[_WM8960_POWER1] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK | _WM8960_POWER1_MICB_MASK
+            )
             regs[_WM8960_RINPATH] = 0x1B8
             regs[_WM8960_RINVOL] = 0x117
 
         elif input == input_line2:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
-            regs[_WM8960_POWER1] = val
-            val = regs[_WM8960_INBMIX2]
-            val |= 0xE
-            regs[_WM8960_INBMIX2] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
+            )
+            regs[_WM8960_INBMIX2] = (0, 0xE)
 
         elif input == input_line3:
-            val = regs[_WM8960_POWER1]
-            val |= _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
-            regs[_WM8960_POWER1] = val
-            val = regs[_WM8960_INBMIX2]
-            val |= 0x70
-            regs[_WM8960_INBMIX2] = val
+            regs[_WM8960_POWER1] = (
+                0, _WM8960_POWER1_AINR_MASK | _WM8960_POWER1_ADCR_MASK
+            )
+            regs[_WM8960_INBMIX2] = (0, 0x70)
 
         else:
             raise ValueError("Invalid input name")
