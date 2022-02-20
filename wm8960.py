@@ -240,7 +240,7 @@ class Regs:
     def __setitem__(self, reg, value):
         if (type(value) is tuple):
             if len(value) >= 2:
-                val = (self.cache[reg] & (~value[0]) & 0xFFFF) | value[1]
+                val = (self.cache[reg] & (~value[0] & 0xFFFF)) | value[1]
             else:
                 val = value[0]
         else:
@@ -331,16 +331,12 @@ class WM8960:
                 mclk_freq = sample_rate * 256
             sysclk = mclk_freq
 
-        # Reset the codec
         regs[_WM8960_RESET] = 0x00
-        #
         # VMID=50K, Enable VREF, AINL, AINR, ADCL and ADCR
         # I2S_IN (bit 0), I2S_OUT (bit 1), DAP (bit 4), DAC (bit 5), ADC (bit 6) are powered on
         regs[_WM8960_POWER1] = 0xFE
-        #
         # Enable DACL, DACR, LOUT1, ROUT1, PLL down, SPKL, SPKR
         regs[_WM8960_POWER2] = 0x1F8
-        #
         # Enable left and right channel input PGA, left and right output mixer
         regs[_WM8960_POWER3] = 0x3C
 
@@ -350,19 +346,15 @@ class WM8960:
         else:
             # ADC and DAC use the same Frame Clock Pin
             regs[_WM8960_IFACE2] = 0x40  # ADCLRC 0x00:Input 0x40:output.
-        # set data route
         self.set_data_route(route)
-        # set data protocol
         self.set_protocol(protocol)
 
         if sysclk_source == sysclk_PLL:
             self.set_internal_pll_config(mclk_freq, sysclk)
-        # set master or slave
         if primary:
             self.set_master_clock(sysclk, sample_rate, bits)
 
         self.set_primary(primary)
-        # set speaker clock
         self.set_speaker_clock(sysclk)
 
         # swap channels
@@ -377,34 +369,25 @@ class WM8960:
                 _WM8960_IFACE1 << _MM8960_IFACE1_DLRSWAP_SHIFT,
             )
 
-        # select left input
         self.set_left_input(left_input)
-        # select right input
         self.set_right_input(right_input)
 
         regs[_WM8960_ADDCTL1] = 0x0C0
         regs[_WM8960_ADDCTL4] = 0x60  # Set GPIO1 to 0.
 
         regs[_WM8960_BYPASS1] = regs[_WM8960_BYPASS2] = 0x0
-        #
         # ADC volume, 0dB
         regs[_WM8960_LADC] = regs[_WM8960_RADC] = 0x1C3
-        #
         # Digital DAC volume, 0dB
         regs[_WM8960_LDAC] = regs[_WM8960_RDAC] = 0x1E0
-        #
         # Headphone volume, LOUT1 and ROUT1, 0dB
         regs[_WM8960_LOUT1] = regs[_WM8960_ROUT1] = 0x16F
-        #
         # speaker volume 6dB
         regs[_WM8960_LOUT2] = regs[_WM8960_ROUT2] = 0x1FF
-        #
         # enable class D output
         regs[_WM8960_CLASSD1] = 0xF7
-        #
         # Unmute DAC.
         regs[_WM8960_DACCTL1] = 0x0000
-        #
         # Input PGA volume 0 dB
         regs[_WM8960_LINVOL] = regs[_WM8960_RINVOL] = 0x117
 
@@ -461,7 +444,7 @@ class WM8960:
             reg_divider = self._bit_clock_divider_table[bit_clock_divider]
         except:
             raise ValueError("Invalid ratio of sysclk sample rate and bits")
-        # configure the master bit clock divider will be better
+        # configure the master bit clock divider
         self.regs[_WM8960_CLOCK2] = (_WM8960_CLOCK2_BCLK_DIV_MASK, reg_divider)
 
     def set_speaker_clock(self, sysclk):
