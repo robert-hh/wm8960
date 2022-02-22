@@ -132,11 +132,11 @@ _NOISEG_LEVEL_SHIFT = const(3)
 _I2C_ADDR = const(0x1A)
 
 # WM8960 maximum volume values
-_ADC_MAX_VOLUME = const(0xFF)
-_DAC_MAX_VOLUME = const(0xFF)
-_HEADPHONE_MAX_VOLUME = const(0x7F)
-_LINEIN_MAX_VOLUME = const(0x3F)
-_SPEAKER_MAX_VOLUME = const(0x7F)
+_MAX_VOLUME_ADC = const(0xFF)
+_MAX_VOLUME_DAC = const(0xFF)
+_MAX_VOLUME_HEADPHONE = const(0x7F)
+_MAX_VOLUME_LINEIN = const(0x3F)
+_MAX_VOLUME_SPEAKER = const(0x7F)
 
 # Config symbol names
 # Modules
@@ -224,17 +224,22 @@ class Regs:
         return self.cache[reg]
 
     def __setitem__(self, reg, value):
-        if type(value) is tuple:
-            if len(value) >= 2:
+        if type(reg) is tuple:
+            if type(value) is tuple:
+                self[reg[0]] = value[0]
+                self[reg[1]] = value[1]
+            else:
+                self[reg[0]] = value
+                self[reg[1]] = value
+        else:
+            if type(value) is tuple:
                 val = (self.cache[reg] & (~value[0] & 0xFFFF)) | value[1]
             else:
-                val = value[0]
-        else:
-            val = value
-        self.cache[reg] = val
-        self.value_buffer[0] = (reg << 1) | ((val >> 8) & 0x01)
-        self.value_buffer[1] = val & 0xFF
-        self.i2c.writeto(self.i2c_address, self.value_buffer)
+                val = value
+            self.cache[reg] = val
+            self.value_buffer[0] = (reg << 1) | ((val >> 8) & 0x01)
+            self.value_buffer[1] = val & 0xFF
+            self.i2c.writeto(self.i2c_address, self.value_buffer)
 
 
 class WM8960:
@@ -359,19 +364,19 @@ class WM8960:
 
         regs[_BYPASS1] = regs[_BYPASS2] = 0x0
         # ADC volume, 0dB
-        regs[_LADC] = regs[_RADC] = 0x1C3
+        regs[_LADC, _RADC] = 0x1C3
         # Digital DAC volume, 0dB
-        regs[_LDAC] = regs[_RDAC] = 0x1E0
+        regs[_LDAC, _RDAC] = 0x1E0
         # Headphone volume, LOUT1 and ROUT1, 0dB
-        regs[_LOUT1] = regs[_ROUT1] = 0x16F
+        regs[_LOUT1, _ROUT1] = 0x16F
         # speaker volume 6dB
-        regs[_LOUT2] = regs[_ROUT2] = 0x1FF
+        regs[_LOUT2, _ROUT2] = 0x1FF
         # enable class D output
         regs[_CLASSD1] = 0xF7
         # Unmute DAC.
         regs[_DACCTL1] = 0x0000
         # Input PGA volume 0 dB
-        regs[_LINVOL] = regs[_RINVOL] = 0x117
+        regs[_LINVOL, _RINVOL] = 0x117
 
         self.config_data_format(sysclk, sample_rate, bits)
 
@@ -529,14 +534,14 @@ class WM8960:
             # Bypass means from line-in to HP
             # Left LINPUT3 to left output mixer, LINPUT3 left output mixer volume = 0dB
             # Right RINPUT3 to right output mixer, RINPUT3 right output mixer volume = 0dB
-            regs[_LOUTMIX] = regs[_ROUTMIX] = 0x80
+            regs[_LOUTMIX, _ROUTMIX] = 0x80
 
         elif route == route_playback:
             # Data route I2S_IN-> DAC-> HP
             #
             # Left DAC to left output mixer, LINPUT3 left output mixer volume = 0dB
             # Right DAC to right output mixer, RINPUT3 right output mixer volume = 0dB
-            regs[_LOUTMIX] = regs[_ROUTMIX] = 0x100
+            regs[_LOUTMIX, _ROUTMIX] = 0x100
             regs[_POWER3] = 0x0C
             # Set power for DAC
             self.set_module(module_DAC, True)
@@ -547,7 +552,7 @@ class WM8960:
             #
             # Left DAC to left output mixer, LINPUT3 left output mixer volume = 0dB
             # Right DAC to right output mixer, RINPUT3 right output mixer volume = 0dB
-            regs[_LOUTMIX] = regs[_ROUTMIX] = 0x100
+            regs[_LOUTMIX, _ROUTMIX] = 0x100
             regs[_POWER3] = 0x3C
             self.set_module(module_DAC, True)
             self.set_module(module_ADC, True)
@@ -676,29 +681,24 @@ class WM8960:
             volume_r = volume
 
         if module == module_ADC:
-            if volume <= _ADC_MAX_VOLUME:
-                regs[_LADC] = volume | 0x100
-                regs[_RADC] = volume_r | 0x100
+            if volume <= _MAX_VOLUME_ADC:
+                regs[_LADC, _RADC] = volume | 0x100, volume_r | 0x100
 
         elif module == module_DAC:
-            if volume <= _DAC_MAX_VOLUME:
-                regs[_LDAC] = volume | 0x100
-                regs[_RDAC] = volume_r | 0x100
+            if volume <= _MAX_VOLUME_DAC:
+                regs[_LDAC, _RDAC] = volume | 0x100, volume_r | 0x100
 
         elif module == module_headphone:
-            if volume <= _HEADPHONE_MAX_VOLUME:
-                regs[_LOUT1] = volume | 0x180
-                regs[_ROUT1] = volume_r | 0x180
+            if volume <= _MAX_VOLUME_HEADPHONE:
+                regs[_LOUT1, _ROUT1] = volume | 0x180, volume_r | 0x180
 
         elif module == module_line_in:
-            if volume <= _LINEIN_MAX_VOLUME:
-                regs[_LINVOL] = volume | 0x140
-                regs[_RINVOL] = volume_r | 0x140
+            if volume <= _MAX_VOLUME_LINEIN:
+                regs[_LINVOL, _LINVOL] = volume | 0x140, volume_r | 0x140
 
         elif module == module_speaker:
-            if volume <= _SPEAKER_MAX_VOLUME:
-                regs[_LOUT2] = volume | 0x180
-                regs[_ROUT2] = volume_r | 0x180
+            if volume <= _MAX_VOLUME_SPEAKER:
+                regs[_LOUT2, _LOUT2] = volume | 0x180,  volume_r | 0x180
         else:
             raise ValueError("Invalid module")
 
@@ -706,19 +706,19 @@ class WM8960:
 
         regs = self.regs
         if module == module_ADC:
-            volume = (regs[_LADC] & _ADC_MAX_VOLUME, regs[_RADC] & _ADC_MAX_VOLUME)
+            volume = (regs[_LADC] & _MAX_VOLUME_ADC, regs[_RADC] & _MAX_VOLUME_ADC)
 
         elif module == module_DAC:
-            volume = (regs[_LDAC] & _DAC_MAX_VOLUME, regs[_RDAC] & _DAC_MAX_VOLUME)
+            volume = (regs[_LDAC] & _MAX_VOLUME_DAC, regs[_RDAC] & _MAX_VOLUME_DAC)
 
         elif module == module_headphone:
-            volume = (regs[_LOUT1] & _HEADPHONE_MAX_VOLUME, regs[_ROUT1] & _HEADPHONE_MAX_VOLUME)
+            volume = (regs[_LOUT1] & _MAX_VOLUME_HEADPHONE, regs[_ROUT1] & _MAX_VOLUME_HEADPHONE)
 
         elif module == module_line_in:
-            volume = (regs[_LINVOL] & _LINEIN_MAX_VOLUME, regs[_RINVOL] & _LINEIN_MAX_VOLUME)
+            volume = (regs[_LINVOL] & _MAX_VOLUME_LINEIN, regs[_RINVOL] & _MAX_VOLUME_LINEIN)
 
         elif module == module_speaker:
-            volume = (regs[_LOUT2] & _SPEAKER_MAX_VOLUME, regs[_ROUT2] & _SPEAKER_MAX_VOLUME)
+            volume = (regs[_LOUT2] & _MAX_VOLUME_SPEAKER, regs[_ROUT2] & _MAX_VOLUME_SPEAKER)
 
         else:
             volume = 0, 0
