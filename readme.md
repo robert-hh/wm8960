@@ -273,6 +273,12 @@ Set the dynamic characteristic of ALC. The times are given as ms values. Permitt
 
 Excess values are limited within the permitted ranges.
 
+### deemphasis(True | False)
+
+Enables or disables a deemphasis filter for playback. This filter is applied only for
+sample rates of 32000, 44100 and 48000. For other sample rates, the filter setting
+is silently ignored.
+
 ### deinit()
 
 Disable all modules.

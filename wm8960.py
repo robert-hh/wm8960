@@ -67,9 +67,6 @@ _WM8960_PLL4 = const(0x37)
 _WM8960_PLL_N_MIN_VALUE = const(6)
 _WM8960_PLL_N_MAX_VALUE = const(12)
 
-# Cache register count
-_WM8960_CACHEREGNUM = const(56)
-
 # WM8960 CLOCK2 bits
 _WM8960_CLOCK2_BCLK_DIV_MASK = const(0x0F)
 _WM8960_CLOCK2_DCLK_DIV_MASK = const(0x1C0)
@@ -124,6 +121,8 @@ _WM8960_POWER3_ROMIX_MASK = const(0x04)
 _WM8960_DACCTL1_MONOMIX_MASK = const(0x10)
 _WM8960_DACCTL1_MONOMIX_SHIFT = const(0x4)
 _WM8960_DACCTL1_DACMU_MASK = const(0x08)
+_WM8960_DACCTL1_DEEM_MASK = const(0x06)
+_WM8960_DACCTL1_DEEM_SHIFT = const(0x01)
 _WM8960_DACCTL2_DACSMM_MASK = const(0x08)
 _WM8960_DACCTL2_DACMR_MASK = const(0x04)
 _WM8960_DACCTL3_ALCSR_MASK = const(0x07)
@@ -857,4 +856,14 @@ class WM8960:
             _WM8960_ALC_DECAY_MASK | _WM8960_ALC_ATTACK_MASK,
             (decay << _WM8960_ALC_DECAY_SHIFT) | attack,
         )
+
+    def deemphasis(self, enable):
+        deem_table = (32000, 44100, 48000)
+        enable = not not enable
+        if enable and self.sample_rate in deem_table:
+            val = deem_table.index(self.sample_rate) + 1
+        else:
+            val = 0
+        self.regs[_WM8960_DACCTL1] = (_WM8960_DACCTL1_DEEM_MASK, val << _WM8960_DACCTL1_DEEM_SHIFT)
+
 # ftm: on
