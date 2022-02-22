@@ -72,29 +72,14 @@ _CLOCK2_BCLK_DIV_MASK = const(0x0F)
 _CLOCK2_DCLK_DIV_MASK = const(0x1C0)
 _CLOCK2_DCLK_DIV_SHIFT = const(0x06)
 
-# Register _IFACE1 FORMAT bits
+# Register _IFACE1
 _IFACE1_FORMAT_MASK = const(0x03)
-
-# Register _IFACE1 WL bits
 _IFACE1_WL_MASK = const(0x0C)
 _IFACE1_WL_SHIFT = const(0x02)
-
-# Register _IFACE1 LRP bit
 _IFACE1_LRP_MASK = const(0x10)
-
-# Register _IFACE1 DLRSWAP bit
-_IFACE1_DLRSWAP_MASK = const(0x20)
-_IFACE1_DLRSWAP_SHIFT = const(0x05)
-
-# Register _IFACE1 MS bit
 _IFACE1_MS_MASK = const(0x40)
-_IFACE1_MS_SHIFT = const(0x06)
-_IFACE1_SLAVE = const(0x00)
-_IFACE1_MASTER = const(0x01)
-
-# Register _IFACE1 ALRSWAP bit
+_IFACE1_DLRSWAP_MASK = const(0x20)
 _IFACE1_ALRSWAP_MASK = const(0x100)
-_IFACE1_ALRSWAP_SHIFT = const(0x08)
 
 # Register _POWER1
 _POWER1_VREF_MASK = const(0x40)
@@ -355,21 +340,16 @@ class WM8960:
             self.set_internal_pll_config(mclk_freq, sysclk)
         if primary:
             self.set_master_clock(sysclk, sample_rate, bits)
+            # set master bit.
+            self.regs[_IFACE1] = (0, _IFACE1_MS_MASK)
 
-        self.set_primary(primary)
         self.set_speaker_clock(sysclk)
 
         # swap channels
         if swap & swap_input:
-            regs[_IFACE1] = (
-                _IFACE1_ALRSWAP_MASK,
-                _IFACE1 << _IFACE1_ALRSWAP_SHIFT,
-            )
+            regs[_IFACE1] = (0, _IFACE1_ALRSWAP_MASK)
         if swap & swap_output:
-            regs[_IFACE1] = (
-                _IFACE1_DLRSWAP_MASK,
-                _IFACE1 << _IFACE1_DLRSWAP_SHIFT,
-            )
+            regs[_IFACE1] = (0, _IFACE1_DLRSWAP_MASK)
 
         self.set_left_input(left_input)
         self.set_right_input(right_input)
@@ -462,19 +442,6 @@ class WM8960:
             _CLOCK2_DCLK_DIV_MASK,
             val << _CLOCK2_DCLK_DIV_SHIFT,
         )
-
-    def set_primary(self, master):
-        if master:
-            self.regs[_IFACE1] = (
-                _IFACE1_MS_MASK,
-                _IFACE1_MASTER << _IFACE1_MS_SHIFT,
-            )
-
-        else:
-            self.regs[_IFACE1] = (
-                _IFACE1_MS_MASK,
-                _IFACE1_SLAVE << _IFACE1_MS_SHIFT,
-            )
 
     def set_module(self, module, is_enabled):
 
@@ -853,6 +820,3 @@ class WM8960:
         else:
             val = 0
         self.regs[_DACCTL1] = (_DACCTL1_DEEM_MASK, val << _DACCTL1_DEEM_SHIFT)
-
-
-# ftm: on
