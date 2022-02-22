@@ -580,26 +580,17 @@ class WM8960:
 
         elif input == input_mic1:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
-            regs[_POWER1] = (
-                0,
-                _POWER1_AINL_MASK | _POWER1_ADCL_MASK | _POWER1_MICB_MASK,
-            )
+            regs[_POWER1] = (0, _POWER1_AINL_MASK | _POWER1_ADCL_MASK | _POWER1_MICB_MASK)
             regs[_LINPATH] = 0x138
             regs[_LINVOL] = 0x117
 
         elif input == input_mic2:
-            regs[_POWER1] = (
-                0,
-                _POWER1_AINL_MASK | _POWER1_ADCL_MASK | _POWER1_MICB_MASK,
-            )
+            regs[_POWER1] = (0, _POWER1_AINL_MASK | _POWER1_ADCL_MASK | _POWER1_MICB_MASK)
             regs[_LINPATH] = 0x178
             regs[_LINVOL] = 0x117
 
         elif input == input_mic3:
-            regs[_POWER1] = (
-                0,
-                _POWER1_AINL_MASK | _POWER1_ADCL_MASK | _POWER1_MICB_MASK,
-            )
+            regs[_POWER1] = (0, _POWER1_AINL_MASK | _POWER1_ADCL_MASK | _POWER1_MICB_MASK)
             regs[_LINPATH] = 0x1B8
             regs[_LINVOL] = 0x117
 
@@ -623,26 +614,17 @@ class WM8960:
 
         elif input == input_mic1:
             # Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled
-            regs[_POWER1] = (
-                0,
-                _POWER1_AINR_MASK | _POWER1_ADCR_MASK | _POWER1_MICB_MASK,
-            )
+            regs[_POWER1] = (0, _POWER1_AINR_MASK | _POWER1_ADCR_MASK | _POWER1_MICB_MASK)
             regs[_RINPATH] = 0x138
             regs[_RINVOL] = 0x117
 
         elif input == input_mic2:
-            regs[_POWER1] = (
-                0,
-                _POWER1_AINR_MASK | _POWER1_ADCR_MASK | _POWER1_MICB_MASK,
-            )
+            regs[_POWER1] = (0, _POWER1_AINR_MASK | _POWER1_ADCR_MASK | _POWER1_MICB_MASK)
             regs[_RINPATH] = 0x178
             regs[_RINVOL] = 0x117
 
         elif input == input_mic3:
-            regs[_POWER1] = (
-                0,
-                _POWER1_AINR_MASK | _POWER1_ADCR_MASK | _POWER1_MICB_MASK,
-            )
+            regs[_POWER1] = (0, _POWER1_AINR_MASK | _POWER1_ADCR_MASK | _POWER1_MICB_MASK)
             regs[_RINPATH] = 0x1B8
             regs[_RINVOL] = 0x117
 
@@ -680,24 +662,19 @@ class WM8960:
         if volume_r is None:
             volume_r = volume
 
-        if module == module_ADC:
-            if volume <= _MAX_VOLUME_ADC:
+        if module == module_ADC and volume <= _MAX_VOLUME_ADC:
                 regs[_LADC, _RADC] = volume | 0x100, volume_r | 0x100
 
-        elif module == module_DAC:
-            if volume <= _MAX_VOLUME_DAC:
+        elif module == module_DAC and volume <= _MAX_VOLUME_DAC:
                 regs[_LDAC, _RDAC] = volume | 0x100, volume_r | 0x100
 
-        elif module == module_headphone:
-            if volume <= _MAX_VOLUME_HEADPHONE:
+        elif module == module_headphone and volume <= _MAX_VOLUME_HEADPHONE:
                 regs[_LOUT1, _ROUT1] = volume | 0x180, volume_r | 0x180
 
-        elif module == module_line_in:
-            if volume <= _MAX_VOLUME_LINEIN:
+        elif module == module_line_in and volume <= _MAX_VOLUME_LINEIN:
                 regs[_LINVOL, _LINVOL] = volume | 0x140, volume_r | 0x140
 
-        elif module == module_speaker:
-            if volume <= _MAX_VOLUME_SPEAKER:
+        elif module == module_speaker and volume <= _MAX_VOLUME_SPEAKER:
                 regs[_LOUT2, _LOUT2] = volume | 0x180,  volume_r | 0x180
         else:
             raise ValueError("Invalid module")
@@ -742,8 +719,7 @@ class WM8960:
         )
 
     def expand_3d(self, depth=0):
-        if depth > 15:
-            depth = 15
+        depth &= 0x0f
         cutoff = 0 if self.sample_rate >= 32000 else 0b1100000
         self.regs[_3D] = cutoff | depth << 1 | (1 if depth > 0 else 0)
 
