@@ -169,18 +169,19 @@ the table above.
 ### set_volume(module, value [, value_r])
 
 Sets the volume of a certain module. If two values are given, the first one is used
-for the left channel, the second for the right channel.
-For a list of suitable modules and highest values, see the table below.
+for the left channel, the second for the right channel. The value range is normalized
+to 0.0-100.0 with a logarithmic scale.
+For a list of suitable modules and db/step, see the table below.
 
-**Module Names and value ranges**
+**Module Names and dB steps**
 
-|Value Range|Name|
+|dB/Step|Name|
 |:---:|:-----|
-|0-255| module_ADC |
-|0-255| module_DAC |
-|0-127| module_headphone |
-|0-63| module_line_in |
-|0-127| module_speaker |
+|1.28| module_ADC |
+|1.28| module_DAC |
+|0.8| module_headphone |
+|0.475| module_line_in |
+|0.8| module_speaker |
 
 
 ### value = get_volume(module)
