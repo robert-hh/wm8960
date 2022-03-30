@@ -25,14 +25,14 @@ The driver contains the WM8960 class and quite a few name definitions.
 wm8960=wm8960.WM8960(i2c, *,
     sample_rate=16000,
     bits=16,
-    swap=swap_none,
-    route=route_playback_record,
-    left_input=mic_input3,
-    right_input=input_mic2,
-    sysclk_source=sysclk_mclk,
+    swap=SWAP_NONE,
+    route=ROUTE_PLAYBACK_RECORD,
+    left_input=MIC_INPUT3,
+    right_input=INPUT_MIC2,
+    sysclk_source=SYSCLK_MCLK,
     mclk_freq=None,
     primary=False,
-    adc_sync=sync_dac,
+    adc_sync=SYNC_DAC,
     protocol=bus_I2S,
     i2c_address=WM8960_I2C_ADDR
 )
@@ -59,97 +59,97 @@ the MCLK input or derived from it using an internal PLL. It is usually not requi
 
 If mclk_freq is not set, the following default values are assumed:
 
-- sysclk_source == sysclk_PLL: 11.2896 MHz for sample rates of 44100, 22050 and 11015 Hz, and 12.288 Mhz for sample rates < 48000, otherwise sample_rate * 256.
-- sysclk_source == sysclk_mclk: sample_rate * 256.
+- sysclk_source == SYSCLK_PLL: 11.2896 MHz for sample rates of 44100, 22050 and 11015 Hz, and 12.288 Mhz for sample rates < 48000, otherwise sample_rate * 256.
+- sysclk_source == SYSCLK_MCLK: sample_rate * 256.
 
-If the MCLK signal is applied using e.g. a separate oszillator, it must be specified for proper operation.
+If the MCLK signal is applied using e.g. a separate oscillator, it must be specified for proper operation.
 
 ## Tables of parameter constants
 **Swap Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| swap_none |
-|1| swap_input|
-|2| swap_output |
+|0| SWAP_NONE |
+|1| SWAP_INPUT|
+|2| SWAP_OUTPUT |
 
 **Route parameter:**
 
 |Value|Name|
 |:---:|:------|
-0| route_bypass |
-1| route_playback |
-2| route_playback_record |
-5| route_record |
+0| ROUTE_BYPASS |
+1| ROUTE_PLAYBACK |
+2| ROUTE_PLAYBACK_RECORD |
+5| ROUTE_RECORD |
 
 **Protocol Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|2| bus_I2S |
-|1| bus_left_justified |
-|0| bus_right_justified|
-|3| bus_PCMA |
-|19| bus_PCMB |
+|2| BUS_I2S |
+|1| BUS_LEFT_JUSTIFIED |
+|0| BUS_RIGHT_JUSTIFIED|
+|3| BUS_PCMA |
+|19| BUS_PCMB |
 
 **Input Source Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| input_closed |
-|1| input_mic1 |
-|2| input_mic2|
-|3| input_mic3|
-|4| input_line2_ |
-|5| input_line3 |
+|0| INPUT_CLOSED |
+|1| INPUT_MIC1 |
+|2| INPUT_MIC2|
+|3| INPUT_MIC3|
+|4| INPUT_LINE2_ |
+|5| INPUT_LINE3 |
 
 **Route Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| route_bypass |
-|1| route_playback |
-|2| route_playback_record|
-|5| route_record |
+|0| ROUTE_BYPASS |
+|1| ROUTE_PLAYBACK |
+|2| ROUTE_PLAYBACK_RECORD|
+|5| ROUTE_RECORD |
 
 **Master Clock Source Parameter**
 
 |Value|Name|
 |:---:|:-----|
-|0| sysclk_mclk |
-|1| sysclk_PLL|
+|0| SYSCLK_MCLK |
+|1| SYSCLK_PLL|
 
 **Module Names**
 
 |Value|Name|
 |:---:|:-----|
-|0| module_ADC |
-|1| module_DAC |
-|2| module_VREF |
-|3| module_headphone |
-|4| module_mic_bias |
-|5| module_mic |
-|6| module_line_in |
-|7| module_line_out|
-|8| module_speaker|
-|9| module_omix |
-|10| module_mono_out |
+|0| MODULE_ADC |
+|1| MODULE_DAC |
+|2| MODULE_VREF |
+|3| MODULE_HEADPHONE |
+|4| MODULE_MIC_BIAS |
+|5| MODULE_MIC |
+|6| MODULE_LINE_IN |
+|7| MODULE_LINE_OUT|
+|8| MODULE_SPEAKER|
+|9| MODULE_OMIX |
+|10| MODULE_MONO_OUT |
 
 **Play Channel Names**
 
 |Value|Name|
 |:---:|:-----|
-|1| play_headphone_left |
-|2| play_headphone_right|
-|4| play_speaker_left |
-|8| play_speaker_right |
+|1| PLAY_HEADPHONE_LEFT |
+|2| PLAY_HEADPHONE_RIGHT|
+|4| PLAY_SPEAKER_LEFT |
+|8| PLAY_SPEAKER_RIGHT |
 
 **adc_sync Parameters**
 
 |Value|Name|
 |:---:|:-----|
-|0| sync_adc|
-|1| sync_dac|
+|0| SYNC_ADC|
+|1| SYNC_DAC|
 
 
 ## Methods
@@ -166,9 +166,10 @@ Specify the source for the left input. The input source names are listed above.
 Specify the source for the left input. For a list of suitable parameter values, see
 the table above.
 
-### set_volume(module, value [, value_r])
+### volume(module [, value_l [, value_r]])
 
-Sets the volume of a certain module. If two values are given, the first one is used
+Sets or get the volume of a certain module. If not value is supplied, the
+actual volume is returned. If two values are given, the first one is used
 for the left channel, the second for the right channel. The value range is normalized
 to 0.0-100.0 with a logarithmic scale.
 For a list of suitable modules and db/step, see the table below.
@@ -177,24 +178,11 @@ For a list of suitable modules and db/step, see the table below.
 
 |dB/Step|Name|
 |:---:|:-----|
-|1.28| module_ADC |
-|1.28| module_DAC |
-|0.8| module_headphone |
-|0.475| module_line_in |
-|0.8| module_speaker |
-
-
-### value = get_volume(module)
-
-Get the actual volumes set for a module as a two element tuple.
-The module names are the same as for set_volume().
-
-### value = volume(module [, value [, value_r]])
-
-Sets or get the volume of a certain module. If not value is supplied, the
-actual volume is returned. If two values are given, the first one is used
-for the left channel, the second for the right channel.
-For a list of suitable modules and highest values, see the table below.
+|1.28| MODULE_ADC |
+|1.28| MODULE_DAC |
+|0.8| MODULE_HEADPHONE |
+|0.475| MODULE_LINE_IN |
+|0.8| MODULE_SPEAKER |
 
 
 ### mute(module, enable, soft=True, ramp=wm8960.mute_fast)
@@ -234,21 +222,21 @@ disables the expansion.
 If set to True, a Mono mix is sent to the left and right output channel.  This
 is different from enabling module_mono_mix, which enables output 3.
 
-### alc_mode(channel, mode=alc_mode)
+### alc_mode(channel, mode=ALC_MODE)
 
 Enables or disables ALC mode. Parameters are:  
 
 **channel** Enable and set the channel for ALC. The parameter values are:  
 
-  - alc_off:   Switch ALC off
-  - als_right:  Use the right input channel
-  - alc_left:   Use the left input channel
-  - alc_stereo: Use both input channels.  
+  - ALC_OFF:   Switch ALC off
+  - ALS_RIGHT:  Use the right input channel
+  - ALC_LEFT:   Use the left input channel
+  - ALC_STEREO: Use both input channels.  
 
 **mode** Set the ALC mode. Input values are  
 
-  - alc_mode:   act as ALC
-  - alc_limiter: act as limiter. 
+  - ALC_MODE:   act as ALC
+  - ALC_LIMITER: act as limiter. 
 
 
 ### alc_gain(target=-12, max_gain=30, min_gain=-17.25, noise_gate=-78)
@@ -319,18 +307,18 @@ Record with a Sparkfun WM8960 breakout board with Teensy in secondary mode(defau
 # The breakout board uses a fixed 24MHz MCLK. Therefore the internal
 # PLL must be used as sysclk, which is the master audio clock.
 # The Sparkfun board has the WS pins for RX and TX connected on the
-# board. Therefore adc_sync must be set to sync_adc, to configure
+# board. Therefore adc_sync must be set to SYNC_ADC, to configure
 # it's ADCLRC pin as input.
 #
 from machine import Pin, I2C
 import wm8960
 i2c = I2C(0)
 wm=wm8960.WM8960(i2c, sample_rate=16_000,
-    adc_sync=wm8960.sync_adc,
-    sysclk_source=wm8960.sysclk_PLL,
+    adc_sync=wm8960.SYNC_ADC,
+    sysclk_source=wm8960.SYSCLK_PLL,
     mclk_freq=24_000_000,
-    left_input=wm8960.input_mic1,
-    right_input=wm8960.input_closed)
+    left_input=wm8960.INPUT_MIC1,
+    right_input=wm8960.INPUT_CLOSED)
 ```
 
 Play with a Sparkfun WM8960 breakout board with Teensy in secondary mode(default)::
@@ -338,15 +326,15 @@ Play with a Sparkfun WM8960 breakout board with Teensy in secondary mode(default
 # The breakout board uses a fixed 24MHz MCLK. Therefore the internal
 # PLL must be used as sysclk, which is the master audio clock.
 # The Sparkfun board has the WS pins for RX and TX connected on the
-# board. Therefore adc_sync must be set to sync_adc, to configure
+# board. Therefore adc_sync must be set to SYNC_ADC, to configure
 # it's ADCLRC pin as input.
 
 from machine import I2C
 i2c=I2C(0)
 import wm8960
 wm=wm8960.WM8960(i2c, sample_rate=44_100,
-    adc_sync=wm8960.sync_adc,
-    sysclk_source=wm8960.sysclk_PLL,
+    adc_sync=wm8960.SYNC_ADC,
+    sysclk_source=wm8960.SYSCLK_PLL,
     mclk_freq=24_000_000)
-wm.set_volume(wm8960.module_headphone, 100)
+wm.set_volume(wm8960.MODULE_HEADPHONE, 100)
 ```
